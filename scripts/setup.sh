@@ -176,7 +176,7 @@ info "TUI binary built"
 
 header "CLI"
 
-cd "$(dirname "$0")/.." && npm link --ignore-scripts
+cd "$(dirname "$0")/.." npm install && npm link --ignore-scripts
 info "playback CLI linked"
 
 # ── Done ─────────────────────────────────────────────────────────────────────

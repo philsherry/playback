@@ -73,7 +73,6 @@
 		"playback:studio:timings:fix": "tsx scripts/debug-timings.ts studio/demo-tui --fix",
 		"playback:tape": "tsx src/cli.ts tape",
 		"playlist:build": "tsx scripts/playlist.ts",
-		"postinstall": "npm run setup",
 		"postsetup": "npm run build",
 		"prepare": "husky || true",
 		"prepublishOnly": "tsup",
