@@ -1,0 +1,4 @@
+# Ignore everything in this directory except this file.
+# External repos are cloned here for recording — they should not be committed.
+*
+!.gitignore

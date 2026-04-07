@@ -1,0 +1,19 @@
+{
+	"*.{ts,js,mjs,cjs}": [
+		"eslint --fix"
+	],
+	"*.{yaml,yml}": [
+		"yamlfmt --conf .yamlfmt.yaml",
+		"bash -c 'printf \"%s\\0\" \"$@\" | xargs -0 -n 25 yamllint --config-file .yamllint.yaml' --"
+	],
+	"*.md": [
+		"bash -c 'printf \"%s\\0\" \"$@\" | xargs -0 -n 25 markdownlint --config .markdownlint.yaml' --"
+	],
+	"*.sh": [
+		"bash -c 'printf \"%s\\0\" \"$@\" | xargs -0 -n 25 shellcheck' --",
+		"shfmt -w"
+	],
+	"tui/**/*.go": [
+		"bash -c 'cd tui && golangci-lint run --fix ./...'"
+	]
+}

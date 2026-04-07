@@ -1,0 +1,24 @@
+---
+description: >
+  A demo of the playback TUI editor: opening a tape with overlapping
+  narration, fixing the timing with audio nudge controls, and saving
+  the result.
+episode: 1
+fixedTiming: true
+locale: en-GB
+poster: 5
+series: demo-tui
+tags:
+  - demo
+  - tui
+  - editing
+title: The playback TUI editor
+version: "1.0.0"
+vhs:
+  height: 720
+  fontSize: 14
+  typingSpeed: "50ms"
+  theme: '{"name":"TokyoNight","background":"#24283b","foreground":"#c0caf5","cursor":"#c0caf5","black":"#1a1b26","red":"#f7768e","green":"#9ece6a","yellow":"#e0af68","blue":"#7aa2f7","magenta":"#bb9af7","cyan":"#7dcfff","white":"#c0caf5","brightBlack":"#545c7e","brightRed":"#f7768e","brightGreen":"#9ece6a","brightYellow":"#e0af68","brightBlue":"#7aa2f7","brightMagenta":"#bb9af7","brightCyan":"#7dcfff","brightWhite":"#c0caf5"}'
+vhsCwd: "."
+voices:
+  - northern_english_male

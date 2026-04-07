@@ -1,0 +1,92 @@
+---
+## https://yamllint.readthedocs.io/en/stable/configuration.html
+## https://yamllint.readthedocs.io/en/stable/rules.html
+extends: 'default'
+ignore:
+  - '.vale/**'
+  - '.venv/**'
+  - '.yamllint.yaml'
+  - 'node_modules/**'
+  - 'workspace/**'
+rules:
+  anchors:
+    forbid-duplicated-anchors: false
+    forbid-undeclared-aliases: true
+  braces:
+    forbid: false
+    level: 'warning'
+    max-spaces-inside-empty: 0
+    max-spaces-inside: 1
+    min-spaces-inside-empty: 0
+    min-spaces-inside: 1
+  brackets:
+    forbid: false
+    level: 'warning'
+    max-spaces-inside-empty: 0
+    max-spaces-inside: 1
+    min-spaces-inside-empty: 0
+    min-spaces-inside: 0
+  colons:
+    level: 'warning'
+    max-spaces-after: 1
+    max-spaces-before: 0
+  commas:
+    level: 'warning'
+    max-spaces-after: 1
+    max-spaces-before: 0
+    min-spaces-after: 1
+  comments:
+    level: 'warning'
+    ignore-shebangs: true
+    min-spaces-from-content: 2
+    require-starting-space: true
+  comments-indentation: 'disable'
+  document-end:
+    present: false
+  document-start:
+    present: true
+  empty-lines:
+    level: 'warning'
+    max: 2
+    max-end: 0
+    max-start: 0
+  empty-values:
+    level: 'warning'
+    forbid-in-block-mappings: true
+    forbid-in-flow-mappings: true
+  float-values:
+    level: 'warning'
+    forbid-inf: false
+    forbid-nan: false
+    forbid-scientific-notation: false
+    require-numeral-before-decimal: false
+  hyphens:
+    level: 'warning'
+    max-spaces-after: 1
+  indentation:
+    check-multi-line-strings: false
+    indent-sequences: true
+    spaces: 'consistent'
+    level: 'warning'
+  key-duplicates: {}
+  key-ordering: 'disable'
+  line-length:
+    allow-non-breakable-inline-mappings: true
+    allow-non-breakable-words: true
+    level: 'warning'
+    max: 120
+  new-line-at-end-of-file: 'enable'
+  new-lines:
+    type: 'unix'
+  octal-values:
+    forbid-implicit-octal: true
+  quoted-strings:
+    quote-type: 'any'
+    required: false
+    check-keys: false
+  truthy:
+    allowed-values: ['true', 'false']
+    check-keys: true
+yaml-files:
+  - '*.yaml'
+  - '*.yml'

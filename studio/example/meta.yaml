@@ -1,0 +1,17 @@
+---
+description: >
+  A sample tape with intentional timing overlaps, designed as a demo
+  for the playback TUI editor. Open this tape in the TUI and use the
+  audio nudge controls to fix the overlapping narration.
+episode: 1
+locale: en-GB
+poster: 5
+series: demo
+tags:
+  - demo
+  - example
+  - tui
+title: Exploring a project structure
+version: "1.0.0"
+voices:
+  - northern_english_male

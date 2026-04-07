@@ -1,0 +1,109 @@
+---
+title: The accessible timing editor
+output: studio/demo-accessible
+steps:
+  # Launch accessible mode with the demo tape.
+  - action: type
+    command: npm run playback:edit:accessible -- studio/example
+    narration: >
+      The accessible mode is a sequential alternative to the full-screen
+      TUI. It uses standard input and output with no alternate screen
+      buffer, so screen readers can follow every step.
+    pause: 11.13
+
+  - action: run
+    narration: >
+      The editor opens with a summary of the tape — title, step count,
+      estimated duration, and build status. Then it shows the first step.
+    pause: 7.4
+
+  # Show help.
+  - action: type
+    command: "?"
+    narration: >
+      Question mark shows the available commands. Enter or n moves
+      forward. p moves back. Plus and minus nudge the pause value.
+      u undoes the last change.
+    pause: 8.36
+
+  - action: run
+    pause: 1
+
+  # Step through a few clips.
+  - action: type
+    command: "n"
+    narration: >
+      Press Enter or n to step forward. Each step announces its action,
+      start time, duration, pause value, and narration text.
+    pause: 8.77
+
+  - action: run
+    pause: 0.5
+
+  - action: type
+    command: "n"
+    pause: 0.5
+
+  - action: run
+    pause: 0.5
+
+  - action: type
+    command: "n"
+    narration: >
+      Step 4 has a long narration that runs close to the next step.
+      Let's increase the pause to give it more room.
+    pause: 5.91
+
+  - action: run
+    pause: 1
+
+  # Nudge the pause value up.
+  - action: type
+    command: "+"
+    narration: >
+      Plus increases the pause by a quarter second. The editor confirms
+      the new value and reprints the step.
+    pause: 5.59
+
+  - action: run
+    pause: 0.5
+
+  - action: type
+    command: "+"
+    narration: One more nudge.
+    pause: 1.63
+
+  - action: run
+    pause: 0.5
+
+  # Undo.
+  - action: type
+    command: u
+    narration: >
+      u undoes the last change. The pause value goes back to what it
+      was before.
+    pause: 4.76
+
+  - action: run
+    pause: 1
+
+  # Redo the nudge.
+  - action: type
+    command: "+"
+    narration: And nudge it back up again.
+    pause: 1.86
+
+  - action: run
+    pause: 0.5
+
+  # Quit.
+  - action: type
+    command: q
+    narration: >
+      q to quit. The editor prints a summary of changes made during
+      the session. Every interaction is line-by-line text that a screen
+      reader can announce without any visual layout.
+    pause: 9.64
+
+  - action: run
+    pause: 2

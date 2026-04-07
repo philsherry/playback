@@ -1,0 +1,18 @@
+---
+description: >
+  The accessible timing editor — a sequential, line-by-line alternative
+  to the full-screen TUI. Uses standard input and output so screen
+  readers can follow every interaction.
+episode: 2
+locale: en-GB
+poster: 3
+series: demo
+tags:
+  - demo
+  - accessibility
+  - accessible-mode
+title: "The accessible timing editor"
+version: "1.0.0"
+vhsCwd: "."
+voices:
+  - northern_english_male

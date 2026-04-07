@@ -1,0 +1,46 @@
+---
+## Voice catalogue for playback.
+##
+## This file is the single source of truth for available piper-tts voices.
+## It is read by:
+##   - scripts/setup.sh    — downloads .onnx model files
+##   - src/schema/meta.ts  — validates voice selections in meta.yaml
+##   - src/runner/piper.ts — resolves model file paths for synthesis
+##   - tui/                — voice picker and display
+##
+## To add a new voice:
+##   1. Find it at https://rhasspy.github.io/piper-samples/
+##   2. Add an entry below with the model name, locale, and URL path
+##   3. Run `npm run setup` to download the model files
+##
+## The key (e.g. "northern_english_male") is what tapes reference in
+## meta.yaml's `voices` field.
+
+voices:
+  alan:
+    gender: male
+    locale: en-GB
+    model: en_GB-alan-medium
+    quality: medium
+    url: en/en_GB/alan/medium
+
+  alba:
+    gender: female
+    locale: en-GB
+    model: en_GB-alba-medium
+    quality: medium
+    url: en/en_GB/alba/medium
+
+  northern_english_male:
+    gender: male
+    locale: en-GB
+    model: en_GB-northern_english_male-medium
+    quality: medium
+    url: en/en_GB/northern_english_male/medium
+
+  southern_english_female:
+    gender: female
+    locale: en-GB
+    model: en_GB-southern_english_female-low
+    quality: low
+    url: en/en_GB/southern_english_female/low

@@ -1,0 +1,23 @@
+{
+	"arrowParens": "always",
+	"bracketSameLine": true,
+	"bracketSpacing": true,
+	"endOfLine": "lf",
+	"htmlWhitespaceSensitivity": "css",
+	"jsxSingleQuote": true,
+	"overrides": [
+		{
+			"files": "*.{md,mdx}",
+			"options": {
+				"useTabs": false
+			}
+		}
+	],
+	"printWidth": 80,
+	"proseWrap": "preserve",
+	"quoteProps": "consistent",
+	"semi": true,
+	"singleQuote": true,
+	"trailingComma": "none",
+	"useTabs": true
+}

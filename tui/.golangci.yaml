@@ -1,0 +1,129 @@
+---
+## This file is used to configure golangci-lint, a linter aggregator for Go.
+## https://golangci-lint.run/docs/configuration/file/
+formatters:
+  ## Enable specific formatter.
+  ## Default: [] (uses standard Go formatting)
+  ## https://golangci-lint.run/docs/formatters/configuration/
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+linters:
+  ## Start from the standard safety checks, then add only the extras that
+  ## pull their weight for a small in-flight CLI/TUI module.
+  ## Bubble Tea's own config is the reference point, but we only adopt the
+  ## checks that fit this repo today.
+  ## https://golangci-lint.run/docs/linters/#all-linters
+  default: standard
+
+  enable:
+    - errcheck
+    - exhaustive
+    - govet
+    - ineffassign
+    - nolintlint
+    - revive
+    - gosec
+    - staticcheck
+    - unused
+    - wrapcheck
+
+  exclusions:
+    generated: lax
+    presets:
+      - common-false-positives
+
+    ## Per-linter exclusion rules.
+    rules:
+      ## errcheck: ignore unchecked returns from fmt.Fprint* — these write
+      ## to stdout or an io.Writer and the errors are meaningless to handle
+      ## in a CLI/TUI context.
+      - linters:
+          - errcheck
+        source: "fmt\\.Fprint"
+
+      ## errcheck: test helpers often call os.WriteFile/MkdirAll on temp dirs
+      ## where the error is not worth checking — t.TempDir() handles cleanup.
+      - linters:
+          - errcheck
+        path: "_test\\.go$"
+        source: "os\\.(WriteFile|MkdirAll)"
+
+      ## gosec: test files use 0644/0755 permissions and unchecked errors on
+      ## temp directories and files. This is fine — they're cleaned up by t.TempDir().
+      - linters:
+          - gosec
+        path: "_test\\.go$"
+
+      ## gosec G602: false positive on range-loop slice indexing — the loop
+      ## variable is bounded by len(clips) so the index is always valid.
+      - linters:
+          - gosec
+        text: "G602"
+
+      ## gosec G703: path traversal false positive — WritePauses constructs
+      ## its path from the tape directory (trusted input from the loader).
+      - linters:
+          - gosec
+        text: "G703"
+
+      ## exhaustive: tea.KeyType switches intentionally handle only the keys
+      ## we care about. Listing all 80+ key types would be noise.
+      - linters:
+          - exhaustive
+        source: "msg\\.Type"
+
+      ## revive: var-naming flags resolvePathWithINIT_CWD because of the
+      ## underscore, but INIT_CWD is the literal environment variable name
+      ## and renaming it would lose that connection.
+      - linters:
+          - revive
+        text: "INIT_CWD"
+
+      ## revive: type stutter (tape.TapeData, tape.TapeEntry) — these names
+      ## are more readable at call sites than tape.Data / tape.Entry which
+      ## would be ambiguous.
+      - linters:
+          - revive
+        text: "stutters"
+
+      ## revive: cobra RunE requires func(cmd *cobra.Command, args []string)
+      ## even when cmd is unused.
+      - linters:
+          - revive
+        text: "unused-parameter.*cmd"
+        path: "cmd\\.go$"
+
+      ## revive: test functions must accept *testing.T even when unused.
+      - linters:
+          - revive
+        path: "_test\\.go$"
+        text: "unused-parameter"
+
+      ## revive: empty blocks in tests are used for documenting expected
+      ## no-op behaviour.
+      - linters:
+          - revive
+        path: "_test\\.go$"
+        text: "empty-block"
+
+      ## wrapcheck: internal calls to os.ReadFile, strconv.ParseFloat, and
+      ## filepath.WalkDir are wrapped where the context matters (loader,
+      ## writer) but not in validators/parsers where the raw error is clear.
+      - linters:
+          - wrapcheck
+        path: "(scanner|model)\\.go$"
+
+  settings:
+    exhaustive:
+      default-signifies-exhaustive: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+# Defines the configuration version.
+# The only possible value is "2".
+version: "2"

@@ -1,0 +1,83 @@
+---
+title: "Install and explore"
+output: studio/example-skills
+steps:
+  # Clone the repo into a clean working directory.
+  - action: type
+    command: git clone https://github.com/philsherry/govuk-design-system-skills.git
+    narration: >
+      Let's start by cloning the govuk-design-system-skills repository.
+    pause: 3
+
+  - action: run
+    pause: 1
+
+  # Enter the repo and show the top-level structure.
+  - action: type
+    command: cd govuk-design-system-skills && ls
+    narration: >
+      Inside the repo there are directories for each design system.
+      GOV.UK, DWP, HMRC, and NHS, each have their own skills files
+      organised by topic. There is also a docs directory and some
+      setup scripts.
+    pause: 2
+
+  - action: run
+    pause: 1
+
+  # Show the GOV.UK department structure.
+  - action: type
+    command: ls govuk-design-system
+    narration: >
+      The GOV.UK directory mirrors the GOV.UK Design System. It has
+      agents, components, patterns, styles, and accessibility — each
+      containing skills files for that topic.
+    pause: 2
+
+  - action: run
+    pause: 1
+
+  # Explore the components directory.
+  - action: type
+    command: ls govuk-design-system/components
+    narration: >
+      The components directory has one folder per component. Each
+      contains a SKILLS.md file with usage rules, macro parameters,
+      and accessibility requirements.
+    pause: 2
+
+  - action: run
+    pause: 1
+
+  # Open a skills file.
+  - action: type
+    command: cat govuk-design-system/components/button/SKILLS.md
+    narration: >
+      Here is the button component's skills file. It starts with
+      frontmatter, then has sections for when to use it, the Nunjucks
+      macro parameters, and accessibility considerations. This is the
+      context that AI tools read when you ask about buttons.
+    pause: 4
+
+  - action: run
+    pause: 2
+
+  # Show the agents directory inside the department.
+  - action: type
+    command: ls govuk-design-system/agents
+    narration: >
+      Each department has its own agents directory. Agents are
+      role-based personas — an accessibility auditor, a content
+      designer, a front-end developer — that describe how each
+      discipline approaches code review.
+    pause: 2
+
+  - action: run
+    pause: 1
+
+  # Wrap up.
+  - action: comment
+    narration: >-
+      That is the basic structure. In the next video, we will load a
+      skills file into Claude Code and see how it changes the quality
+      of the answers you get.

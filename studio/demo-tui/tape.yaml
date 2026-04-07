@@ -1,0 +1,174 @@
+---
+title: The playback TUI editor
+output: studio/demo-tui
+steps:
+  # Brief pause for the shell prompt to settle (suppresses zsh autosuggestion ghost text).
+  - action: comment
+    pause: 0.5
+
+  # 0.5s — Launch.
+  - action: type
+    command: npm run playback:demo
+    narration: >
+      The playback TUI is a post-production timing editor.
+      Let's open a tape with overlapping narration.
+    pause: 5.36
+    narrationOffset: 0
+
+  # ~6s — TUI loaded. Let the viewer take in the interface.
+  - action: run
+    narration: >
+      The TUI shows terminal commands, a step list, and an audio
+      timeline. Red markers highlight overlapping narration.
+    pause: 7.66
+    narrationOffset: 0
+
+  # ~14s — Navigate to step 4.
+  # Narration starts on the comment, then j presses fire during it.
+  - action: comment
+    narration: >
+      Navigate with j and k. The inspector shows the overlap
+      warning and narration offset.
+    pause: 0.3
+    narrationOffset: 0
+
+  - action: key
+    command: j
+    pause: 1.2
+
+  - action: key
+    command: j
+    pause: 1.2
+
+  - action: key
+    command: j
+    pause: 1.2
+
+  - action: key
+    command: j
+    pause: 1.5
+
+  # ~19s — Fix first overlap.
+  # Narration starts, then l presses fire during it.
+  - action: comment
+    narration: >
+      Press l to slide the narration later. Each press shifts a
+      quarter second. The overlap disappears.
+    pause: 0.3
+    narrationOffset: 0
+
+  - action: key
+    command: l
+    pause: 1.5
+
+  - action: key
+    command: l
+    pause: 1.5
+
+  - action: key
+    command: l
+    pause: 2.5
+
+  # ~25s — Navigate to second overlap.
+  - action: key
+    command: j
+    pause: 0.3
+
+  - action: key
+    command: j
+    pause: 0.3
+
+  # ~26s — Fix second overlap.
+  - action: comment
+    narration: Fix the second overlap.
+    pause: 0.3
+    narrationOffset: 0
+
+  - action: key
+    command: l
+    pause: 0.4
+
+  - action: key
+    command: l
+    pause: 0.4
+
+  - action: key
+    command: l
+    pause: 0.4
+
+  - action: key
+    command: l
+    pause: 0.5
+
+  # ~28s — Navigate to third overlap.
+  - action: key
+    command: j
+    pause: 0.3
+
+  - action: key
+    command: j
+    pause: 0.3
+
+  # ~29s — Fix third overlap.
+  - action: comment
+    narration: And the third.
+    pause: 0.3
+    narrationOffset: 0
+
+  - action: key
+    command: l
+    pause: 0.5
+
+  - action: key
+    command: l
+    pause: 1.5
+
+  # ~32s — Save.
+  - action: comment
+    narration: >
+      Press s to save. The offsets write back to tape.yaml.
+    pause: 0.3
+    narrationOffset: 0
+
+  - action: key
+    command: s
+    pause: 3.5
+
+  # ~36s — Tape picker.
+  - action: comment
+    narration: Press o to switch between tapes.
+    pause: 0.3
+    narrationOffset: 0
+
+  - action: key
+    command: o
+    pause: 1.5
+
+  - action: key
+    command: Escape
+    pause: 1
+
+  # ~39s — Help.
+  - action: comment
+    narration: Question mark for the keybinding reference.
+    pause: 0.3
+    narrationOffset: 0
+
+  - action: key
+    command: "?"
+    pause: 2.5
+
+  - action: key
+    command: "?"
+    pause: 1
+
+  # ~43s — Quit.
+  - action: comment
+    narration: >
+      And q to quit. That's the playback TUI.
+    pause: 0.3
+    narrationOffset: 0
+
+  - action: key
+    command: q
+    pause: 2.5

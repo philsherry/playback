@@ -1,0 +1,89 @@
+{
+	"bin": {
+		"playback": "./dist/cli.js"
+	},
+	"exports": {
+		".": "./dist/cli.js",
+		"./config": "./dist/config.js"
+	},
+	"files": [
+		"dist",
+		"voices.yaml",
+		"workspace.example.yaml"
+	],
+	"dependencies": {
+		"valibot": "^1.3.1",
+		"yaml": "^2.8.3"
+	},
+	"description": "Turns YAML scripts into narrated, captioned terminal videos — then lets you fine-tune the timing in a post-production editor.",
+	"devDependencies": {
+		"@babel/plugin-transform-typescript": "^7.28.6",
+		"@commitlint/cli": "^20.5.0",
+		"@commitlint/config-conventional": "^20.5.0",
+		"@commitlint/format": "^20.5.0",
+		"@commitlint/prompt": "^20.5.0",
+		"@commitlint/prompt-cli": "^20.5.0",
+		"@eslint-community/eslint-plugin-eslint-comments": "^4.7.1",
+		"@eslint/js": "^10.0.1",
+		"@types/node": "^25.5.2",
+		"cspell": "^10.0.0",
+		"eslint": "^10.2.0",
+		"eslint-plugin-jsdoc": "^62.9.0",
+		"globals": "^17.4.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.4.0",
+		"markdownlint-cli": "^0.48.0",
+		"npm-run-all2": "^8.0.4",
+		"prettier": "^3.8.1",
+		"tsup": "^8.5.1",
+		"tsx": "^4.21.0",
+		"typescript": "^6.0.2",
+		"typescript-eslint": "^8.58.0",
+		"vitest": "^4.1.2"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"name": "playback-cli",
+	"scripts": {
+		"build": "tsup && npm run build:tui",
+		"prepublishOnly": "tsup",
+		"build:tui": "cd tui && go build -o playback-tui .",
+		"clean": "rm -rf tui/playback-tui",
+		"commit": "commit",
+		"dev": "tsx src/cli.ts",
+		"format": "run-s format:ts format:tui",
+		"format:ts": "prettier --write .",
+		"format:tui": "cd tui && golangci-lint run --fix ./...",
+		"lint": "run-s lint:ts lint:tui lint:md lint:yaml",
+		"lint:md": "markdownlint --config .markdownlint.yaml '**/*.md' --ignore node_modules --ignore workspace",
+		"lint:staged": "npx lint-staged",
+		"lint:ts": "eslint src",
+		"lint:tui": "cd tui && golangci-lint run ./...",
+		"lint:yaml": "yamllint --config-file .yamllint.yaml .",
+		"playback:demo": "cd tui && go run . studio/example",
+		"playback:edit": "cd tui && go run .",
+		"playback:edit:accessible": "cd tui && go run . --accessible",
+		"playback:edit:hc": "cd tui && go run . --high-contrast",
+		"playback:edit:report": "cd tui && go run . --report",
+		"playback:studio:build": "bash studio/build-studio.sh",
+		"playback:studio:build:debug": "bash studio/build-studio.sh debug",
+		"playback:studio:timings": "tsx scripts/debug-timings.ts studio/demo-tui",
+		"playback:studio:timings:accessible": "tsx scripts/debug-timings.ts studio/demo-accessible",
+		"playback:studio:timings:accessible:fix": "tsx scripts/debug-timings.ts studio/demo-accessible --fix",
+		"playback:studio:timings:fix": "tsx scripts/debug-timings.ts studio/demo-tui --fix",
+		"playback:tape": "tsx src/cli.ts tape",
+		"playlist:build": "tsx scripts/playlist.ts",
+		"postsetup": "npm run build",
+		"prepare": "husky || true",
+		"setup": "bash scripts/setup.sh",
+		"test": "run-s test:ts test:tui",
+		"test:ts": "vitest run",
+		"test:tui": "cd tui && go test ./...",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit",
+		"validate": "tsx src/cli.ts validate"
+	},
+	"type": "module",
+	"version": "1.0.0"
+}

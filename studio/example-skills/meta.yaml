@@ -1,0 +1,16 @@
+---
+description: >
+  Clone the govuk-design-system-skills repo, explore its structure, and
+  open a SKILLS.md file. Based on the case study's s1e01 episode plan.
+episode: 1
+locale: en-GB
+poster: 3
+series: s1-getting-started
+tags:
+  - getting-started
+  - govuk-design-system-skills
+  - workspace
+title: "Install and explore"
+version: "1.0.0"
+voices:
+  - northern_english_male

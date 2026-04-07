@@ -1,0 +1,54 @@
+# Private deployment notes — local only, not for the public repo
+TODO.md
+
+# Build
+dist/
+tui/playback-tui
+
+# Generated output — video artefacts
+blockbuster/
+studio/build/
+studio/dist/
+studio/example/tape.yaml
+studio/demo-tui/*.gif
+studio/demo-tui/*.mp4
+
+# Workspace — local config and external content for recording
+# Copy workspace.example.yaml to workspace.yaml and adjust paths.
+workspace.yaml
+govuk-design-system-skills/
+
+# Dependencies
+node_modules/
+
+# Voice models — large binary files, download via npm run setup
+voices/
+
+# Vale styles — populated by vale sync
+.vale/
+
+# Environment
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+## VisualStudio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+.agents/memory/
+.github/memory/
+
+# Editor
+.idea/
+
+# Claude Code local settings — machine-specific
+.claude/
+
+# Logs
+*.log
+npm-debug.log*

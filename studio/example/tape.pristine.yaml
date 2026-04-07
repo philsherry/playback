@@ -1,0 +1,63 @@
+---
+# Pristine demo tape with intentional overlaps.
+# The build-studio.sh script copies this to tape.yaml before recording,
+# so the demo always starts with timing issues that need fixing.
+title: Exploring a project structure
+output: studio/example
+steps:
+  - action: type
+    command: mkdir -p src tests docs && touch README.md config.yaml
+    narration: "Let's set up a small project to explore."
+    narrationOffset: 0
+    pause: 2
+
+  - action: run
+    pause: 0.5
+
+  - action: type
+    command: ls
+    narration: "Now we can see the project structure."
+    narrationOffset: 0
+    pause: 2
+
+  - action: run
+    narration: >
+      We have a source directory, a tests directory, some documentation,
+      and a configuration file. A fairly typical project layout.
+    narrationOffset: -0.75
+    pause: 0.5
+
+  - action: type
+    command: echo '# Demo Project' > README.md && cat README.md
+    narration: "The README is always a good place to start."
+    narrationOffset: 0
+    pause: 1
+
+  - action: run
+    narration: >
+      This project uses a standard build pipeline. You install dependencies,
+      run the build, and then run the test suite to make sure everything
+      works as expected. Nothing unusual here.
+    narrationOffset: -1
+    pause: 0.5
+
+  - action: type
+    command: touch src/config.ts src/pipeline.ts src/format.ts && ls src
+    narration: "Now let's look at the source code."
+    narrationOffset: 0
+    pause: 1
+
+  - action: run
+    narration: >
+      There are three main modules. The first handles configuration loading,
+      the second runs the core processing pipeline, and the third manages
+      the output formatting. Each module has its own test file alongside it.
+    narrationOffset: -0.5
+    pause: 0.5
+
+  - action: comment
+    narration: >-
+      That covers the project structure. In the next video, we'll dive into
+      the configuration module and see how it loads settings from the config
+      file we saw earlier.
+    narrationOffset: 0

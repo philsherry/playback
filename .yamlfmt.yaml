@@ -1,0 +1,10 @@
+---
+doublestar: true
+formatter:
+  eof_newline: true
+  include_document_start: true
+  indentless_arrays: false
+  retain_line_breaks: true
+  scan_folded_as_literal: true
+  sort_keys: false
+  trim_trailing_whitespace: true

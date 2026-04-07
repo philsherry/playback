@@ -1,0 +1,45 @@
+---
+$schema: |
+  https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json
+allowCompoundWords: true
+dictionaries:
+  - bash
+  - companies
+  - css
+  - en
+  - en-gb
+  - filetypes
+  - git
+  - html
+  - node
+  - npm
+  - project
+  - shell
+  - softwareTerms
+  - typescript
+dictionaryDefinitions:
+  - addWords: true
+    name: project
+    path: cspell.project.txt
+ignorePaths:
+  - .vale/**/*
+  - node_modules/**/*
+  - voices/**/*
+ignoreRegExpList:
+  - Base64
+  - CSSHexValue
+  - CommitHashLink
+  - Urls
+  - href
+  - markdown_code_block
+language: en-GB,en
+patterns:
+  - name: markdown_code_block
+    pattern: |
+      /
+          ^(\s*`{3,}).*     # match the ```
+          [\s\S]*?          # the block of code
+          ^\1               # end of the block
+      /gmx
+suggestionsTimeout: 5000
+version: '0.2'
