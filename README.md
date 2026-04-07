@@ -161,7 +161,7 @@ The TUI timing editor ships as a standalone Go binary. Install it
 separately if you need post-production editing:
 
 ```sh
-go install github.com/philsherry/playback/tui@latest
+go install github.com/philsherry/playback/tui/cmd/playback-tui@latest
 ```
 
 Then create a `playback.config.ts` in your project root:
