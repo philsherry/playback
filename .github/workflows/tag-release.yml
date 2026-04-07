@@ -19,7 +19,7 @@ jobs:
     name: Tag and publish release
     runs-on: ubuntu-latest
     env:
-      RELEASE_SIGNING_FINGERPRINT: SHA256:2kX0buOoOaq0Hkz859CsfPvbWmmdWQtWnKTM/xwA9M8
+      RELEASE_SIGNING_FINGERPRINT: SHA256:dU1hD8ZteTNmJFWd/atFDhTMEdTKKwtSItmYxPyTlA8
       RELEASE_TAGGER_EMAIL: 272769+philsherry@users.noreply.github.com
       RELEASE_TAGGER_NAME: Phil Sherry
     steps:
