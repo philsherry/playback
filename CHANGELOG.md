@@ -4,6 +4,14 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-04-07
+
+### Added
+
+- Agent instruction docs (`.agents/`) covering pipeline, structure, tapes, testing, timeline, TUI, and TUI UI
+- GitHub Copilot instructions (`.github/copilot-instructions.md`)
+- Claude code instructions (`CLAUDE.md`)
+
 ## [1.0.2] - 2026-04-07
 
 ### Fixed
