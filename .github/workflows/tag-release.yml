@@ -1,0 +1,108 @@
+---
+name: Tag release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "CHANGELOG.md"
+      - "package-lock.json"
+      - "package.json"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Tag and publish release
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_SIGNING_FINGERPRINT: SHA256:2kX0buOoOaq0Hkz859CsfPvbWmmdWQtWnKTM/xwA9M8
+      RELEASE_TAGGER_EMAIL: 272769+philsherry@users.noreply.github.com
+      RELEASE_TAGGER_NAME: Phil Sherry
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Read version from package.json
+        id: version
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "tui_tag=tui/v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if tag already exists
+        id: tag_check
+        run: |
+          git fetch --tags --force
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check release metadata
+        run: node scripts/check-release-version.cjs
+
+      - name: Create and push tags
+        if: steps.tag_check.outputs.exists == 'false'
+        env:
+          RELEASE_SIGNING_SSH_PRIVATE_KEY: ${{ secrets.RELEASE_SIGNING_SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$RELEASE_SIGNING_SSH_PRIVATE_KEY" ]; then
+            echo "Missing RELEASE_SIGNING_SSH_PRIVATE_KEY secret" >&2
+            exit 1
+          fi
+
+          signing_key_path="$RUNNER_TEMP/release_signing_key"
+          public_key_path="$signing_key_path.pub"
+          trap 'rm -f "$signing_key_path" "$public_key_path"' EXIT
+          printf '%s\n' "$RELEASE_SIGNING_SSH_PRIVATE_KEY" > "$signing_key_path"
+          chmod 600 "$signing_key_path"
+          ssh-keygen -y -f "$signing_key_path" > "$public_key_path"
+          derived_fingerprint="$(ssh-keygen -lf "$public_key_path" | awk '{print $2}')"
+
+          if [ "$derived_fingerprint" != "$RELEASE_SIGNING_FINGERPRINT" ]; then
+            echo "Configured release signing key does not match the expected fingerprint" >&2
+            exit 1
+          fi
+
+          git config user.name "$RELEASE_TAGGER_NAME"
+          git config user.email "$RELEASE_TAGGER_EMAIL"
+          git config gpg.format ssh
+          git config user.signingkey "$signing_key_path"
+
+          git tag -s "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+          # Tag the Go TUI at the same version if it hasn't been tagged already.
+          if ! git rev-parse "${{ steps.version.outputs.tui_tag }}" >/dev/null 2>&1; then
+            git tag -s "${{ steps.version.outputs.tui_tag }}" -m "TUI release ${{ steps.version.outputs.tui_tag }}"
+            git push origin "${{ steps.version.outputs.tui_tag }}"
+          fi
+
+      - name: Publish to npm
+        if: steps.tag_check.outputs.exists == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+
+      - name: Build release notes from changelog
+        run: |
+          node scripts/release-notes-from-changelog.cjs "${{ steps.version.outputs.version }}" > release-notes.md
+
+      - name: Create or update GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          body_path: release-notes.md
+          generate_release_notes: false

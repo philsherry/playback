@@ -87,7 +87,7 @@ if (!command || command === '--help' || command === '-h') {
 playback — accessible terminal demo video creation tool
 
 Usage:
-	playback validate <dir>              Parse and validate a tape without recording
+  playback validate <dir>              Parse and validate a tape without recording
   playback tape <dir>                  Run the full pipeline
   playback tape <dir> --vhs-only       Record terminal only, skip audio and captions
   playback tape <dir> --captions-only  Regenerate captions from an existing tape
