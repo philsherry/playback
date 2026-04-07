@@ -163,12 +163,12 @@ header "TUI editor"
 
 if command -v gum &>/dev/null; then
   spin "Installing Go dependencies…" bash -c "cd '$(dirname "$0")/../tui' && go mod tidy"
-  spin "Building TUI binary…" bash -c "cd '$(dirname "$0")/../tui' && go build -o playback-tui ."
+  spin "Building TUI binary…" bash -c "cd '$(dirname "$0")/../tui' && go build -o playback-tui ./cmd/playback-tui"
 else
   info "Installing Go dependencies…"
   (cd "$(dirname "$0")/../tui" && go mod tidy)
   info "Building TUI binary…"
-  (cd "$(dirname "$0")/../tui" && go build -o playback-tui .)
+  (cd "$(dirname "$0")/../tui" && go build -o playback-tui ./cmd/playback-tui)
 fi
 info "TUI binary built"
 
@@ -176,7 +176,7 @@ info "TUI binary built"
 
 header "CLI"
 
-cd "$(dirname "$0")/.." && npm link
+cd "$(dirname "$0")/.." && npm link --ignore-scripts
 info "playback CLI linked"
 
 # ── Done ─────────────────────────────────────────────────────────────────────

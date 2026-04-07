@@ -2,15 +2,6 @@
 	"bin": {
 		"playback": "./dist/cli.js"
 	},
-	"exports": {
-		".": "./dist/cli.js",
-		"./config": "./dist/config.js"
-	},
-	"files": [
-		"dist",
-		"voices.yaml",
-		"workspace.example.yaml"
-	],
 	"dependencies": {
 		"valibot": "^1.3.1",
 		"yaml": "^2.8.3"
@@ -44,10 +35,18 @@
 	"engines": {
 		"node": ">=22"
 	},
+	"exports": {
+		".": "./dist/cli.js",
+		"./config": "./dist/config.js"
+	},
+	"files": [
+		"dist",
+		"voices.yaml",
+		"workspace.example.yaml"
+	],
 	"name": "playback-cli",
 	"scripts": {
 		"build": "tsup && npm run build:tui",
-		"prepublishOnly": "tsup",
 		"build:tui": "cd tui && go build -o playback-tui ./cmd/playback-tui",
 		"clean": "rm -rf tui/playback-tui",
 		"commit": "commit",
@@ -74,8 +73,10 @@
 		"playback:studio:timings:fix": "tsx scripts/debug-timings.ts studio/demo-tui --fix",
 		"playback:tape": "tsx src/cli.ts tape",
 		"playlist:build": "tsx scripts/playlist.ts",
+		"postinstall": "npm run setup",
 		"postsetup": "npm run build",
 		"prepare": "husky || true",
+		"prepublishOnly": "tsup",
 		"release:check": "node scripts/check-release-version.cjs",
 		"release:notes": "node scripts/release-notes-from-changelog.cjs",
 		"setup": "bash scripts/setup.sh",
@@ -87,5 +88,5 @@
 		"validate": "tsx src/cli.ts validate"
 	},
 	"type": "module",
-	"version": "1.0.1"
+	"version": "1.0.2"
 }
