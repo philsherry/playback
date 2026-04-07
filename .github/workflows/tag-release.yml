@@ -90,6 +90,10 @@ jobs:
             git push origin "${{ steps.version.outputs.tui_tag }}"
           fi
 
+      - name: Install dependencies
+        if: steps.tag_check.outputs.exists == 'false'
+        run: npm ci
+
       - name: Publish to npm
         if: steps.tag_check.outputs.exists == 'false'
         env:
