@@ -4,6 +4,12 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-04-07
+
+### Fixed
+
+- Misaligned `validate` command in the `playback --help` output (leading tab, now matches the two-space indent of all other commands)
+
 ## [1.0.0] - 2026-04-05
 
 First public release. TypeScript pipeline for recording and mixing, Go TUI for

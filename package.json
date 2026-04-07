@@ -76,6 +76,8 @@
 		"playlist:build": "tsx scripts/playlist.ts",
 		"postsetup": "npm run build",
 		"prepare": "husky || true",
+		"release:check": "node scripts/check-release-version.cjs",
+		"release:notes": "node scripts/release-notes-from-changelog.cjs",
 		"setup": "bash scripts/setup.sh",
 		"test": "run-s test:ts test:tui",
 		"test:ts": "vitest run",
@@ -85,5 +87,5 @@
 		"validate": "tsx src/cli.ts validate"
 	},
 	"type": "module",
-	"version": "1.0.0"
+	"version": "1.0.1"
 }

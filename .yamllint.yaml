@@ -3,6 +3,7 @@
 ## https://yamllint.readthedocs.io/en/stable/rules.html
 extends: 'default'
 ignore:
+  - '.github/**'
   - '.vale/**'
   - '.venv/**'
   - '.yamllint.yaml'
