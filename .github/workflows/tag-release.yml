@@ -31,7 +31,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: "https://registry.npmjs.org"
 
       - name: Read version from package.json
         id: version
@@ -90,16 +89,6 @@ jobs:
             git tag -s "${{ steps.version.outputs.tui_tag }}" -m "TUI release ${{ steps.version.outputs.tui_tag }}"
             git push origin "${{ steps.version.outputs.tui_tag }}"
           fi
-
-      - name: Install dependencies
-        if: steps.tag_check.outputs.exists == 'false'
-        run: npm ci
-
-      - name: Publish to npm
-        if: steps.tag_check.outputs.exists == 'false'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
 
       - name: Build release notes from changelog
         run: |
