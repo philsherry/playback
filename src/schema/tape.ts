@@ -11,6 +11,7 @@
  * - **`key`** — sends a keystroke without pressing Enter (for interactive TUIs).
  * - **`run`** — waits for the previous command to complete (no new input).
  * - **`comment`** — pauses for narration without any terminal interaction.
+ * - **`chapter`** — inserts a named chapter marker; no terminal interaction or narration.
  *
  * Example `tape.yaml`:
  * ```yaml
@@ -114,6 +115,20 @@ const CommentStep = v.object({
 });
 
 /**
+ * A `chapter` step — inserts a named chapter marker into the video.
+ *
+ * Produces no terminal input, no narration, and zero duration in the
+ * timeline. When any `chapter` step is present, `generateChapters` uses
+ * only those steps (with their `title` fields) instead of auto-generating
+ * chapter titles from all events.
+ */
+const ChapterStep = v.object({
+	action: v.literal('chapter'),
+	/** Chapter title embedded into the FFMETADATA1 chapter file. */
+	title: v.string(),
+});
+
+/**
  * A `narrate` step — starts narration immediately while firing commands
  * concurrently underneath.
  *
@@ -143,7 +158,7 @@ const NarrateStep = v.object({
  * Discriminated union of all valid tape step types.
  * The `action` field is the discriminant.
  */
-export const StepSchema = v.union([TypeStep, KeyStep, RunStep, CommentStep, NarrateStep]);
+export const StepSchema = v.union([TypeStep, KeyStep, RunStep, CommentStep, NarrateStep, ChapterStep]);
 
 /**
  * Schema for the top-level `tape.yaml` document.

@@ -130,6 +130,36 @@ describe('buildTimeline', () => {
 		expect(tl.events[0].vhs.directives).toEqual([]);
 		expect(tl.events[1].vhs.directives).toEqual([]);
 	});
+
+	it('chapter step has zero duration', () => {
+		const parsed = makeParsed([
+			{ action: 'chapter', title: 'My Chapter' },
+		]);
+		const tl = buildTimeline(parsed);
+		expect(tl.events[0].duration).toBe(0);
+	});
+
+	it('chapter step has null narration', () => {
+		const parsed = makeParsed([
+			{ action: 'chapter', title: 'My Chapter' },
+		]);
+		const tl = buildTimeline(parsed);
+		expect(tl.events[0].narration).toBeNull();
+	});
+
+	it('chapter step does not affect start times of surrounding steps', () => {
+		const parsed = makeParsed([
+			{ action: 'run', pause: 2 },
+			{ action: 'chapter', title: 'Marker' },
+			{ action: 'run', pause: 3 },
+		]);
+		const tl = buildTimeline(parsed);
+		// Chapter has zero duration, so step at index 2 starts at same time as if chapter wasn't there
+		expect(tl.events[0].startTime).toBe(0);
+		expect(tl.events[1].startTime).toBe(2);
+		expect(tl.events[2].startTime).toBe(2);
+		expect(tl.totalDuration).toBe(5);
+	});
 });
 
 // ── applyAudioDurations ──────────────────────────────────────────────────────
@@ -271,6 +301,24 @@ describe('generateVhsFromTimeline', () => {
 		const newTape = generateVhsFromTimeline(tl, parsed);
 
 		expect(newTape).toBe(oldTape);
+	});
+
+	it('skips chapter steps entirely — no Sleep line emitted', () => {
+		const parsed = makeParsed([
+			{ action: 'run', pause: 1 },
+			{ action: 'chapter', title: 'A Chapter' },
+			{ action: 'run', pause: 2 },
+		]);
+		const tl = buildTimeline(parsed);
+		const tape = generateVhsFromTimeline(tl, parsed);
+
+		// Should contain Sleep for the run steps
+		expect(tape).toContain('Sleep 1.00s');
+		expect(tape).toContain('Sleep 2.00s');
+		// Chapter title should not appear in VHS tape
+		expect(tape).not.toContain('A Chapter');
+		// Should not contain a Sleep 0.00s for the chapter
+		expect(tape).not.toContain('Sleep 0.00s');
 	});
 
 	it('uses back-filled sleep values after applyAudioDurations', () => {

@@ -128,6 +128,10 @@ function round2(n: number): number {
  * @returns VHS directives plus computed sleep values.
  */
 function buildVhsAction(step: Step): VhsAction {
+	if (step.action === 'chapter') {
+		return { directives: [], sleepSeconds: 0 };
+	}
+
 	const pause = step.pause ?? DEFAULT_PAUSE;
 	const narration = step.narration ? narrationDuration(step.narration) : 0;
 
@@ -214,6 +218,9 @@ function buildVhsAction(step: Step): VhsAction {
  * @returns Total event duration in seconds.
  */
 function eventDuration(step: Step, vhs: VhsAction): number {
+	if (step.action === 'chapter') {
+		return 0;
+	}
 	if (step.action === 'type') {
 		const typingDuration = (step.command.length * TYPING_SPEED_MS) / 1000;
 		return round2(typingDuration + vhs.sleepSeconds);
@@ -249,11 +256,12 @@ export function buildTimeline(parsed: ParsedTape): Timeline {
 		const step = parsed.tape.steps[i];
 		const vhs = buildVhsAction(step);
 		const duration = eventDuration(step, vhs);
-		const offset = step.narrationOffset ?? 0;
+		const offset = step.action !== 'chapter' ? (step.narrationOffset ?? 0) : 0;
 
-		const narration: TimelineNarration | null = step.narration
+		const narrationText = step.action !== 'chapter' ? step.narration : undefined;
+		const narration: TimelineNarration | null = narrationText
 			? {
-					text: step.narration,
+					text: narrationText,
 					offset,
 					audioStartTime: cursor + offset,
 					audioDuration: null,
@@ -446,6 +454,9 @@ export function generateVhsFromTimeline(
 	// ── Events ───────────────────────────────────────────────────────────────
 
 	for (const event of timeline.events) {
+		const step = parsed.tape.steps[event.stepIndex];
+		if (step.action === 'chapter') continue;
+
 		const { directives, sleepSeconds } = event.vhs;
 		for (const d of directives) {
 			lines.push(d);

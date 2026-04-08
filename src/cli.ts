@@ -22,8 +22,9 @@
  * ```
  */
 
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
+import { generateScaffold } from './generator/scaffold';
 import { parseTape, ParseError } from './parser/index';
 import { buildTimeline, applyAudioDurations, extractSegments, syncSegmentsToTimeline } from './timeline';
 import { auditTimings } from './audit/timings';
@@ -80,31 +81,60 @@ const auditFixFlag = flags.has('--audit-fix');
 /** When `true`, burn a debug command overlay into the final video. */
 const debugOverlayFlag = flags.has('--debug-overlay');
 
+/** When `true`, also produce a `.mkv` with an embedded SRT subtitle track. */
+const mkvFlag = flags.has('--mkv');
+
+/** When `true` and command is `scaffold`, overwrite an existing PROMPT.md. */
+const scaffoldForce = command === 'scaffold' && flags.has('--force');
+
 // ── Help ──────────────────────────────────────────────────────────────────────
 
-if (!command || command === '--help' || command === '-h') {
+/**
+ * Prints the CLI help text to stdout.
+ *
+ * Applies ANSI colour codes when stdout is a TTY and the `NO_COLOR`
+ * environment variable is not set. Otherwise outputs plain text.
+ */
+function printHelp(): void {
+	const useColour = process.stdout.isTTY && !process.env['NO_COLOR'];
+
+	const bold = (s: string) => useColour ? `\x1b[1m${s}\x1b[0m` : s;
+	const cyan = (s: string) => useColour ? `\x1b[1m\x1b[36m${s}\x1b[0m` : s;
+	const white = (s: string) => useColour ? `\x1b[1;37m${s}\x1b[0m` : s;
+	const yellow = (s: string) => useColour ? `\x1b[33m${s}\x1b[0m` : s;
+	const dim = (s: string) => useColour ? `\x1b[2m${s}\x1b[0m` : s;
+
+	void bold; // referenced via cyan/white/dim
+
 	console.log(`
-playback — accessible terminal demo video creation tool
+${cyan('playback')} ${dim('—')} ${cyan('accessible terminal demo video creation tool')}
 
-Usage:
-  playback validate <dir>              Parse and validate a tape without recording
-  playback tape <dir>                  Run the full pipeline
-  playback tape <dir> --vhs-only       Record terminal only, skip audio and captions
-  playback tape <dir> --captions-only  Regenerate captions from an existing tape
-  playback tape <dir> --web            Also export standalone audio + manifest.json
-  playback tape <dir> --audit          Print timing audit table after synthesis
-  playback tape <dir> --audit-fix      Audit + fix shortfalls in tape.yaml
-  playback tape <dir> --debug-overlay  Burn command labels into the final video
+${cyan('Usage:')}
+  ${white('playback validate <dir>')}              ${dim('Parse and validate a tape without recording')}
+  ${white('playback tape <dir>')}                  ${dim('Run the full pipeline')}
+  ${white('playback tape <dir>')} ${yellow('--vhs-only')}       ${dim('Record terminal only, skip audio and captions')}
+  ${white('playback tape <dir>')} ${yellow('--captions-only')}  ${dim('Regenerate captions from an existing tape')}
+  ${white('playback tape <dir>')} ${yellow('--web')}            ${dim('Also export standalone audio + manifest.json')}
+  ${white('playback tape <dir>')} ${yellow('--audit')}          ${dim('Print timing audit table after synthesis')}
+  ${white('playback tape <dir>')} ${yellow('--audit-fix')}      ${dim('Audit + fix shortfalls in tape.yaml')}
+  ${white('playback tape <dir>')} ${yellow('--debug-overlay')}  ${dim('Burn command labels into the final video')}
+  ${white('playback tape <dir>')} ${yellow('--mkv')}            ${dim('Also produce a .mkv with embedded SRT subtitles')}
+  ${white('playback scaffold <dir>')}              ${dim('Generate a PROMPT.md scaffold from tape.yaml and meta.yaml')}
+  ${white('playback scaffold <dir>')} ${yellow('--force')}      ${dim('Overwrite an existing PROMPT.md')}
 
-Options:
-  -h, --help    Show this help message
+${cyan('Options:')}
+  ${yellow('-h, --help')}    ${dim('Show this help message')}
 `);
+}
+
+if (!command || command === '--help' || command === '-h') {
+	printHelp();
 	process.exit(0);
 }
 
 // ── Validation ─────────────────────────────────────────────────────────────────
 
-if (command !== 'tape' && command !== 'validate') {
+if (command !== 'tape' && command !== 'validate' && command !== 'scaffold') {
 	console.error(`Unknown command: ${command}`);
 	console.error('Run playback --help for usage.');
 	process.exit(1);
@@ -146,6 +176,20 @@ async function run(): Promise<void> {
 
 	if (command === 'validate') {
 		console.log(`\n✓ Valid. Tape: ${parsed.dir}`);
+		return;
+	}
+
+	if (command === 'scaffold') {
+		const promptPath = join(parsed.dir, 'PROMPT.md');
+		if (existsSync(promptPath) && !scaffoldForce) {
+			console.error(`✗ PROMPT.md already exists: ${promptPath}`);
+			console.error('  Use --force to overwrite.');
+			process.exit(1);
+		}
+		const timeline = buildTimeline(parsed);
+		const content = generateScaffold(parsed, timeline.totalDuration);
+		writeFileSync(promptPath, content, 'utf8');
+		console.log(`✓ Scaffold written: ${promptPath}`);
 		return;
 	}
 
@@ -192,7 +236,8 @@ async function run(): Promise<void> {
 			const step = parsed.tape.steps[i];
 			// Skip narrate steps — their narration drives command spacing
 			// and must not be stripped even in fixedTiming mode.
-			if (step.action === 'narrate') continue;
+			// Skip chapter steps — they have no narration field.
+			if (step.action === 'narrate' || step.action === 'chapter') continue;
 			if (step.narration) {
 				narrationByStep.set(i, step.narration);
 				step.narration = undefined;
@@ -226,11 +271,11 @@ async function run(): Promise<void> {
 	if (script.segments.length === 0) {
 		// No narration — record and mix without audio.
 		console.log('  Generating chapters…');
-		generateChapters(timeline, parsed.tape.steps, outputDir);
+		const chaptersNoNarr = generateChapters(timeline, parsed.tape.steps, outputDir);
 		console.log('  Recording terminal…');
 		const { rawMp4 } = await runVhs(parsed, DIST_DIR, workspace);
 		console.log('  No narration found — skipping audio and captions.');
-		await runFfmpeg(rawMp4, [], { assFile: '', vttFile: '', srtFile: '' }, outputDir, outputSlug, posterTime, parsed.posterFile, videoMetadata);
+		await runFfmpeg(rawMp4, [], { assFile: '', vttFile: '', srtFile: '' }, outputDir, outputSlug, posterTime, parsed.posterFile, videoMetadata, undefined, chaptersNoNarr.hasExplicit ? chaptersNoNarr.path : undefined);
 		console.log(`\n✓ Done. Output: ${outputDir}`);
 		return;
 	}
@@ -264,6 +309,7 @@ async function run(): Promise<void> {
 			for (const event of timeline.events) {
 				if (event.narration?.audioDuration != null) {
 					const step = parsed.tape.steps[event.stepIndex];
+					if (step.action === 'chapter') continue;
 					step.pause = Math.max(step.pause ?? 0.5, event.narration.audioDuration + AUDIO_BUFFER);
 					// Clear narration text from the step so stepSleep() won't
 					// override the corrected pause with a word-count estimate.
@@ -306,9 +352,10 @@ async function run(): Promise<void> {
 	// Generate chapter metadata from the finalised timeline.
 	// The chapters.txt file is always written for benchmarking (ffprobe
 	// diffing). It is only embedded into the MP4 when tape steps contain
-	// explicit `chapter` keys — not yet implemented.
+	// explicit `chapter` steps — when hasExplicit is true, the chapter file
+	// is passed to runFfmpeg for embedding.
 	console.log('  Generating chapters…');
-	generateChapters(timeline, parsed.tape.steps, outputDir);
+	const chaptersResult = generateChapters(timeline, parsed.tape.steps, outputDir);
 
 	// Build debug overlay filter if requested (before VHS so it's ready for ffmpeg).
 	const overlayFilter = debugOverlayFlag ? buildOverlayFilter(timeline) : undefined;
@@ -359,11 +406,14 @@ async function run(): Promise<void> {
 			posterTime,
 			parsed.posterFile,
 			videoMetadata,
-			overlayFilter || undefined
+			overlayFilter || undefined,
+			chaptersResult.hasExplicit ? chaptersResult.path : undefined,
+			mkvFlag
 		);
 
 		console.log(`  ✓ ${result.mp4File}`);
 		console.log(`  ✓ ${result.gifFile}`);
+		if (result.mkvFile) console.log(`  ✓ ${result.mkvFile}`);
 		if (result.posterFile) console.log(`  ✓ ${result.posterFile}`);
 		lastPosterFile = result.posterFile;
 

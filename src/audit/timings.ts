@@ -5,7 +5,7 @@
  * prints a timing audit table. Optionally writes corrected pause values
  * back to tape.yaml on disk.
  *
- * This is the library version of `scripts/debug-timings.ts`. The standalone
+ * This is the library version of `scripts/debug/timings.ts`. The standalone
  * script is a thin wrapper around this module; the pipeline uses it via the
  * `--audit` and `--audit-fix` flags.
  */

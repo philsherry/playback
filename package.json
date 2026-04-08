@@ -71,17 +71,18 @@
 		"playback:edit:report": "cd tui && go run ./cmd/playback-tui --report",
 		"playback:studio:build": "bash studio/build-studio.sh",
 		"playback:studio:build:debug": "bash studio/build-studio.sh debug",
-		"playback:studio:timings": "tsx scripts/debug-timings.ts studio/demo-tui",
-		"playback:studio:timings:accessible": "tsx scripts/debug-timings.ts studio/demo-accessible",
-		"playback:studio:timings:accessible:fix": "tsx scripts/debug-timings.ts studio/demo-accessible --fix",
-		"playback:studio:timings:fix": "tsx scripts/debug-timings.ts studio/demo-tui --fix",
+		"playback:studio:timings": "tsx scripts/debug/timings.ts studio/demo-tui",
+		"playback:studio:timings:accessible": "tsx scripts/debug/timings.ts studio/demo-accessible",
+		"playback:studio:timings:accessible:fix": "tsx scripts/debug/timings.ts studio/demo-accessible --fix",
+		"playback:studio:timings:fix": "tsx scripts/debug/timings.ts studio/demo-tui --fix",
 		"playback:tape": "tsx src/cli.ts tape",
 		"playlist:build": "tsx scripts/playlist.ts",
 		"postsetup": "npm run build",
 		"prepare": "husky || true",
 		"prepublishOnly": "tsup",
-		"release:check": "node scripts/check-release-version.cjs",
-		"release:notes": "node scripts/release-notes-from-changelog.cjs",
+		"release:check": "node scripts/release/check.cjs",
+		"release:prepare": "run-s test:ts test:tui typecheck release:check",
+		"release:notes": "node scripts/release/notes-from-changelog.cjs",
 		"setup": "bash scripts/setup.sh",
 		"test": "run-s test:ts test:tui",
 		"test:ts": "vitest run",
@@ -91,5 +92,5 @@
 		"validate": "tsx src/cli.ts validate"
 	},
 	"type": "module",
-	"version": "1.0.3"
+	"version": "1.0.4"
 }

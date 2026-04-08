@@ -200,6 +200,10 @@ export function narrationDuration(text: string): number {
  * @returns Duration in seconds, rounded to two decimal places.
  */
 export function stepDuration(step: Step): number {
+	if (step.action === 'chapter') {
+		return 0;
+	}
+
 	const pause = step.pause ?? 0.5;
 	const narration = step.narration ? narrationDuration(step.narration) : 0;
 

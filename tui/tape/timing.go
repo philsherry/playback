@@ -55,6 +55,10 @@ func NarrationDuration(text string) float64 {
 // and the estimated narration duration — the step must be at least as long
 // as its voiceover.
 func StepDuration(step Step) float64 {
+	if step.Action == "chapter" {
+		return 0
+	}
+
 	pause := DefaultPause
 	if step.Pause != nil {
 		pause = *step.Pause
