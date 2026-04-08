@@ -1213,8 +1213,17 @@ func (m Model) renderStepList() string {
 		)
 
 		// Narration truncated to fit the narrower right column.
+		// Chapter steps show their title in the narration slot.
 		narr := ""
-		if step.Narration != "" {
+		if step.Action == "chapter" && step.Title != "" {
+			text := step.Title
+			maxLen := m.layout.StepListWidth - 26
+			if maxLen > 0 && len(text) > maxLen {
+				text = text[:maxLen-1] + "…"
+			}
+			narr = m.styles.Accent.Render(" " + text)
+			marker = "§ "
+		} else if step.Narration != "" {
 			text := step.Narration
 			maxLen := m.layout.StepListWidth - 26
 			if maxLen > 0 && len(text) > maxLen {

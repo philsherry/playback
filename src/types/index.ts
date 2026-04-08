@@ -153,4 +153,6 @@ export type FfmpegResult = {
 	 * specified in `meta.yaml` and no `poster.png` was present in the tape directory.
 	 */
 	posterFile: string | null;
+	/** Absolute path to the `.mkv` file, if `--mkv` was requested. */
+	mkvFile?: string;
 };

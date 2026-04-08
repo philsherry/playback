@@ -29,9 +29,11 @@ import (
 type Step struct {
 	Action          string   `yaml:"action"`
 	Command         string   `yaml:"command,omitempty"`
+	Commands        []string `yaml:"commands,omitempty"`
 	Narration       string   `yaml:"narration,omitempty"`
 	Pause           *float64 `yaml:"pause,omitempty"`
 	NarrationOffset *float64 `yaml:"narrationOffset,omitempty"`
+	Title           string   `yaml:"title,omitempty"`
 }
 
 // Tape represents a parsed tape.yaml document. Title is shown as a VHS

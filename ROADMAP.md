@@ -7,7 +7,7 @@ tracking. Pull requests welcome on any of these.
 
 - [ ] Template library — common action patterns (install, test, run dev, git
       flow) as reusable partials
-- [ ] Auto-generate `PROMPT.md` from tape metadata — the CLI could scaffold it
+- [x] Auto-generate `PROMPT.md` from tape metadata — the CLI could scaffold it
       from `tape.yaml` + `meta.yaml` instead of hand-writing
 - [ ] Automatic timing calculation — estimate `pause` values from command
       complexity rather than hand-tuning
@@ -38,7 +38,7 @@ tracking. Pull requests welcome on any of these.
 
 ## Output
 
-- [ ] MKV archival output — `--mkv` flag produces a single self-contained file
+- [x] MKV archival output — `--mkv` flag produces a single self-contained file
       with video, voiceover, and all caption tracks bundled; no new
       dependencies, ffmpeg handles it natively
 - [ ] Thumbnail generation — first or nominated frame as a `.png` for embeds
@@ -63,7 +63,7 @@ tracking. Pull requests welcome on any of these.
 
 ## CLI polish
 
-- [ ] Styled CLI help — replace the plain `console.log` help text with
+- [x] Styled CLI help — replace the plain `console.log` help text with
       `gum style` output, consistent with the setup scripts
 - [ ] Progress output — replace bare status lines with `gum spin` or structured
       progress display

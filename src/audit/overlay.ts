@@ -7,7 +7,7 @@
  * white-on-black for the duration of that step (capped at LABEL_MAX_S
  * seconds so long pauses don't leave labels on screen unreasonably).
  *
- * This is the library version of `scripts/debug-overlay.ts`. The standalone
+ * This is the library version of `scripts/debug/overlay.ts`. The standalone
  * script parses a .tape file; this module reads directly from the timeline.
  */
 

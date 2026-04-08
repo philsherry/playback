@@ -25,7 +25,7 @@ export function extractTtsScript(
 	for (let i = 0; i < parsed.tape.steps.length; i++) {
 		const step = parsed.tape.steps[i];
 
-		if (step.narration) {
+		if (step.action !== 'chapter' && step.narration) {
 			segments.push({
 				startTime: cursor,
 				stepIndex: i,

@@ -291,6 +291,96 @@ async function extractPoster(
 }
 
 /**
+ * Combines the raw VHS terminal recording with synthesised narration audio
+ * and an embedded SRT subtitle track into a `.mkv` container.
+ *
+ * Unlike the MP4 path, no subtitle burn-in is performed — the SRT track is
+ * included as a selectable stream. The video is padded to VIDEO_HEIGHT but
+ * no ASS filter is applied.
+ * @param rawMp4 - Path to the raw VHS recording.
+ * @param segments - Synthesised narration segments with timing and audio files.
+ * @param outputFile - Destination path for the output `.mkv`.
+ * @param captions - Caption file paths; `srtFile` is used as the subtitle stream.
+ * @param metadata - Video metadata tags to embed.
+ * @param chapterFile - Optional FFMETADATA1 chapter file to embed.
+ */
+async function stitchMkv(
+	rawMp4: string,
+	segments: SynthesisedSegment[],
+	outputFile: string,
+	captions: CaptionFiles,
+	metadata: VideoMetadata,
+	chapterFile?: string
+): Promise<void> {
+	const videoFilter = `pad=w=${VIDEO_WIDTH}:h=${VIDEO_HEIGHT}:x=0:y=0:color=black`;
+	const metaFlags = buildMetadataFlags(metadata);
+
+	const inputs = ['-i', rawMp4];
+	for (const seg of segments) {
+		inputs.push('-i', seg.audioFile);
+	}
+
+	// SRT subtitle input — index is 1 + segments.length
+	const srtInputIndex = 1 + segments.length;
+	inputs.push('-i', captions.srtFile);
+
+	// Chapter metadata file — added as the last input
+	const chapterInputIndex = srtInputIndex + 1;
+	if (chapterFile) {
+		inputs.push('-i', chapterFile);
+	}
+	const chapterFlags = chapterFile
+		? ['-map_metadata', `${chapterInputIndex}`]
+		: [];
+
+	const subtitleLang = metadata.language ? bcp47ToIso639(metadata.language) : null;
+	const subtitleLangFlags = subtitleLang
+		? ['-metadata:s:s:0', `language=${subtitleLang}`]
+		: [];
+
+	if (segments.length === 0) {
+		await spawnFfmpeg([
+			...inputs,
+			'-vf', videoFilter,
+			'-map', '0:v',
+			'-map', `${srtInputIndex}:s`,
+			...chapterFlags,
+			'-c:v', 'libx264',
+			'-crf', '18',
+			'-preset', 'slow',
+			'-c:s', 'srt',
+			'-metadata:s:s:0', 'title=Captions',
+			...subtitleLangFlags,
+			...metaFlags,
+			outputFile,
+		]);
+		return;
+	}
+
+	const audioFilterComplex = buildAudioFilterComplex(segments);
+
+	await spawnFfmpeg([
+		...inputs,
+		'-vf', videoFilter,
+		'-filter_complex', audioFilterComplex,
+		'-map', '0:v',
+		'-map', '[aout]',
+		'-map', `${srtInputIndex}:s`,
+		...chapterFlags,
+		'-c:v', 'libx264',
+		'-crf', '18',
+		'-preset', 'slow',
+		'-c:a', 'aac',
+		'-b:a', '128k',
+		'-c:s', 'srt',
+		'-metadata:s:s:0', 'title=Captions',
+		...subtitleLangFlags,
+		...metaFlags,
+		outputFile,
+	]);
+}
+
+/**
  * Runs the full ffmpeg post-processing pipeline: MP4 stitch, GIF generation,
  * and optional poster extraction.
  *
@@ -308,6 +398,7 @@ async function extractPoster(
  * @param metadata - Video metadata tags to embed in the `.mp4`.
  * @param overlayFilter - Optional ffmpeg drawtext filter for debug overlay.
  * @param chapterFile - Optional FFMETADATA1 chapter file to embed in the MP4.
+ * @param mkv - When `true`, also produce a `.mkv` with an embedded SRT subtitle track.
  * @returns Paths to the generated `.mp4`, `.gif`, and poster image (if any).
  */
 export async function runFfmpeg(
@@ -320,7 +411,8 @@ export async function runFfmpeg(
 	posterSourceFile: string | null,
 	metadata: VideoMetadata,
 	overlayFilter?: string,
-	chapterFile?: string
+	chapterFile?: string,
+	mkv?: boolean
 ): Promise<FfmpegResult> {
 	const mp4File = join(outputDir, `${outputName}.mp4`);
 	const gifFile = join(outputDir, `${outputName}.gif`);
@@ -339,6 +431,14 @@ export async function runFfmpeg(
 		resolvedPoster = posterFile;
 	}
 
-	return { gifFile, mp4File, posterFile: resolvedPoster };
+	const result: FfmpegResult = { gifFile, mp4File, posterFile: resolvedPoster };
+
+	if (mkv) {
+		const mkvFile = join(outputDir, `${outputName}.mkv`);
+		await stitchMkv(rawMp4, segments, mkvFile, captions, metadata, chapterFile);
+		result.mkvFile = mkvFile;
+	}
+
+	return result;
 }
 

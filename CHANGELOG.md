@@ -4,6 +4,18 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-04-08
+
+### Added
+
+- `chapter` tape action for named chapter markers, with MP4 chapter embedding when present
+- `--mkv` flag to produce an MKV archive alongside the usual MP4 and GIF, with SRT captions included as a subtitle track
+- `playback scaffold <dir>` command to generate a `PROMPT.md` template from `meta.yaml` and the narration text in `tape.yaml`
+
+### Changed
+
+- Styled `playback --help` output with terminal-aware colour, while preserving plain-text output for pipes and `NO_COLOR`
+
 ## [1.0.3] - 2026-04-07
 
 ### Added

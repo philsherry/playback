@@ -176,7 +176,14 @@ info "TUI binary built"
 
 header "CLI"
 
-cd "$(dirname "$0")/.." npm install && npm link --ignore-scripts
+(
+  cd "$(dirname "$0")/.." &&
+  npm install &&
+  if npm ls -g playback-cli --depth=0 >/dev/null 2>&1; then
+    npm unlink -g playback-cli
+  fi &&
+  npm link --ignore-scripts
+)
 info "playback CLI linked"
 
 # ── Done ─────────────────────────────────────────────────────────────────────
