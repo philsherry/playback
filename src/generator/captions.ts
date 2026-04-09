@@ -124,7 +124,7 @@ function generateAss(cues: Cue[], marginV?: number): string {
 		//   Outline = box padding around text (in pixels).
 		//   Shadow = 0 (no drop shadow).
 		// Alignment=2: bottom-centre.
-		`Style: Default,${CAPTION_FONT},${CAPTION_FONT_SIZE},${CAPTION_COLOUR},&H000000FF,${CAPTION_BACK_COLOUR},&H00000000,0,0,0,0,100,100,0,0,3,4,0,2,10,10,${effectiveMarginV},1`,
+		`Style: Default,${CAPTION_FONT},${CAPTION_FONT_SIZE},${CAPTION_COLOUR},&H000000FF,${CAPTION_BACK_COLOUR},&H00000000,0,0,0,0,100,100,0,0,3,4,0,2,10,10,${effectiveMarginV},0`,
 		'',
 		'[Events]',
 		'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
@@ -152,8 +152,8 @@ function generateSrt(cues: Cue[]): string {
 	return cues
 		.map((cue, i) => {
 			// SRT uses commas for milliseconds, not dots
-			const start = formatTimestamp(cue.start).replace('.', ',');
-			const end = formatTimestamp(cue.end).replace('.', ',');
+			const start = formatTimestamp(cue.start).replaceAll('.', ',');
+			const end = formatTimestamp(cue.end).replaceAll('.', ',');
 			return `${i + 1}\n${start} --> ${end}\n${cue.text}\n`;
 		})
 		.join('\n');

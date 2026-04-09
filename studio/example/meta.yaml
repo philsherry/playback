@@ -13,5 +13,6 @@ tags:
   - tui
 title: Exploring a project structure
 version: "1.0.0"
+# Available voices: alan, alba, northern_english_male, southern_english_female
 voices:
   - northern_english_male

@@ -4,6 +4,17 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-04-09
+
+### Added
+
+- `vhs.shell` override in `meta.yaml` — configure the VHS terminal shell per tape (e.g. `bash`). Defaults to `zsh`
+
+### Fixed
+
+- SRT timestamp separator: `.replace('.', ',')` only replaced the first `.` in the timestamp string; changed to `.replaceAll` for correctness and intent clarity
+- ASS subtitle `Encoding` field was `1` (Windows ANSI); changed to `0` (UTF-8) to match the file encoding and prevent Mojibake with non-ASCII narration text (e.g. curly quotes, Welsh characters)
+
 ## [1.0.4] - 2026-04-08
 
 ### Added
@@ -63,4 +74,9 @@ post-production timing adjustments, and a full set of studio example tapes.
 - **Timing tools** — `--audit` prints a timing comparison table after synthesis, `--audit-fix` writes corrected pauses to `tape.yaml`, `--debug-overlay` burns command labels into the video
 - **202 tests** — TypeScript (`vitest`) and Go across parser, schemas, generators, extractors, utilities, captions, workspace, metadata, timeline, and TUI
 
+[1.0.5]: https://github.com/philsherry/playback/compare/v1.0.4...v1.0.5
+[1.0.4]: https://github.com/philsherry/playback/compare/v1.0.3...v1.0.4
+[1.0.3]: https://github.com/philsherry/playback/compare/v1.0.2...v1.0.3
+[1.0.2]: https://github.com/philsherry/playback/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/philsherry/playback/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/philsherry/playback/releases/tag/v1.0.0

@@ -92,7 +92,7 @@ const KeyStep = v.object({
  * A `run` step — waits for the previously typed command to complete.
  *
  * No new input is sent to the terminal. Use this after a `type` step whose
- * command runs for a non-trivial amount of time (e.g. `npm install`).
+ * command runs for a non-specified amount of time (e.g. `npm install`).
  */
 const RunStep = v.object({
 	action: v.literal('run'),
@@ -104,7 +104,7 @@ const RunStep = v.object({
 /**
  * A `comment` step — pauses to allow narration without any terminal interaction.
  *
- * Useful for explaining context between commands or summarising what just
+ * Useful for explaining context between commands or summarising what
  * happened on screen. No terminal input or output is produced.
  */
 const CommentStep = v.object({

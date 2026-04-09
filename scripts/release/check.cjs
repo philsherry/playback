@@ -29,7 +29,8 @@ const releaseNotesLines = releaseNotes.split('\n');
 const errors = [];
 
 function findFirstVersionHeading(lines) {
-	return lines.find((line) => /^## \[[^\]]+\]/.test(line));
+	// Skip the [Unreleased] placeholder — find the first real version heading.
+	return lines.find((line) => /^## \[[^\]]+\]/.test(line) && !line.startsWith('## [Unreleased]'));
 }
 
 function extractHeadingDate(heading) {

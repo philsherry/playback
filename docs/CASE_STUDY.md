@@ -116,7 +116,7 @@ voice, high reading levels, and non-GOV.UK error message wording.
 
 **s5e03 — Sequential review: the full discipline chain.**
 Run one piece of work through interaction designer, content designer,
-front-end developer, and accessibility auditor in sequence. The "power user"
+front-end developer, and accessibility auditor in sequence. The comprehensive
 video — four reviews, each catching different things. 3–4 minutes.
 
 ### Series 6: Quality and contribution (2 episodes)

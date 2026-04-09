@@ -86,6 +86,8 @@ export const MetaSchema = v.object({
 		theme: v.optional(v.string()),
 		/** Typing speed (e.g. `"50ms"`). Default: `"75ms"`. */
 		typingSpeed: v.optional(v.string()),
+		/** Shell for the VHS terminal session (e.g. `"bash"`). Default: `"zsh"`. */
+		shell: v.optional(v.string()),
 	})),
 	/**
 	 * Voice models to use for narration synthesis.
