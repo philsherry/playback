@@ -103,7 +103,7 @@ function buildAudioFilterComplex(segments: SynthesisedSegment[]): string {
  * Maps a BCP-47 language tag to its ISO 639-2/B three-letter code.
  *
  * ffmpeg's stream-level `language` tag expects ISO 639-2/B (e.g. `eng`),
- * not BCP-47 (e.g. `en-GB`). This covers the languages we're likely to use.
+ * not BCP-47 (e.g. `en-GB`). This covers further languages as we grow.
  * @param bcp47 - BCP-47 language tag (e.g. `"en-GB"`, `"cy"`).
  * @returns ISO 639-2/B code, or `null` if the language is not mapped.
  */

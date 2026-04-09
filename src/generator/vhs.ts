@@ -41,10 +41,11 @@ import { escapeVhs } from '../utilities/escape';
 const DEFAULT_PAUSE = 0.5;
 
 /**
- * Shell used for the VHS terminal session.
+ * Default shell for the VHS terminal session.
  * zsh is the default macOS shell from Catalina onwards.
+ * Override per-tape via `vhs.shell` in `meta.yaml`.
  */
-const SHELL = 'zsh';
+const DEFAULT_SHELL = 'zsh';
 
 /**
  * Generates the full contents of a VHS `.tape` file for the given parsed tape.
@@ -80,7 +81,7 @@ export function generateVhsTape(parsed: ParsedTape): string {
 	lines.push(`Set BorderRadius ${TERMINAL_BORDER_RADIUS}`);
 	lines.push(`Set Margin ${TERMINAL_MARGIN}`);
 	lines.push(`Set MarginFill "${TERMINAL_MARGIN_FILL}"`);
-	lines.push(`Set Shell "${SHELL}"`);
+	lines.push(`Set Shell "${vhsOverrides?.shell ?? DEFAULT_SHELL}"`);
 	lines.push(`Set TypingSpeed ${vhsOverrides?.typingSpeed ?? TYPING_SPEED}`);
 	lines.push('');
 
@@ -176,7 +177,7 @@ function generateStep(step: Step): string[] {
 			return [`Sleep ${sleep.toFixed(2)}s`];
 
 		case 'comment':
-			// No terminal action — just a pause to give the voiceover room.
+			// No terminal action — add a beat to give the voiceover room.
 			return sleep > 0 ? [`Sleep ${sleep.toFixed(2)}s`] : [];
 
 		case 'narrate': {

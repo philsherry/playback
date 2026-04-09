@@ -1,80 +1,46 @@
-# Release notes — v1.0.4
+# Release notes — v1.0.5
 
-## `chapter` tape action
+## `vhs.shell` override
 
-Named chapter markers for your tape. When at least one `chapter` step is
-present, the pipeline embeds those chapters into the final `.mp4` — visible
-in QuickTime, VLC, and any player that reads MP4 chapter metadata.
+Configure the VHS terminal shell per tape via `meta.yaml`. Defaults to `zsh`
+(the macOS default since Catalina); set this if your tape targets a different
+shell or your recording environment uses `bash`.
 
 ```yaml
-steps:
-  - action: chapter
-    title: Installation
-
-  - action: type
-    command: npm install govuk-frontend
-    narration: First, install the package.
-
-  - action: chapter
-    title: Exploring the output
+vhs:
+  shell: bash
 ```
 
-Without any `chapter` steps the pipeline behaves as before —
-`chapters.txt` is still written for `ffprobe` diffing, but nothing is
-embedded in the video.
-
-Verify embedded chapters after a build:
-
-```sh
-ffprobe -v quiet -print_format json -show_chapters blockbuster/path/to/output.mp4
-```
+This joins the existing `vhs` overrides (`height`, `fontSize`, `theme`,
+`typingSpeed`) and applies only to the tape that declares it.
 
 ---
 
-## `--mkv` flag
+## SRT timestamp fix
 
-Produces a `.mkv` archive alongside the usual `.mp4` and `.gif`. The MKV
-contains the same video and audio, plus the SRT captions as a subtitle
-track you can toggle in your player — no burned-in text, no extra dependencies.
-
-```sh
-playback tape studio/example --mkv
-```
-
-Verify the subtitle track is present:
-
-```sh
-ffprobe -v quiet -show_streams -select_streams s blockbuster/studio/example/example.mkv
-```
+SRT milliseconds use a comma separator (`00:00:01,500` not `00:00:01.500`).
+The previous code used `.replace('.', ',')` which, by a happy accident,
+always worked — `formatTimestamp` produces one `.` — but was
+expressing the wrong intent. Changed to `.replaceAll('.', ',')` so the
+behaviour is explicit and correct regardless of future format changes.
 
 ---
 
-## `playback scaffold <dir>`
+## ASS subtitle encoding fix
 
-Generates a `PROMPT.md` template in a tape directory, pre-filled from
-`meta.yaml` and the narration text in `tape.yaml`. Useful when starting a
-new tape or documenting one you already have.
+The ASS `Style` header included `Encoding=1` (Windows ANSI), while the
+generator writes the file as UTF-8. Most renderers auto-detect and ignore this field,
+but if libass ever respected it, non-ASCII characters in narration text
+would render as Mojibake — curly quotes (`'`) becoming `â€™`, for example.
 
-```sh
-playback scaffold studio/example
-```
-
-Pass `--force` to overwrite a `PROMPT.md` that already exists:
-
-```sh
-playback scaffold studio/example --force
-```
+Changed to `Encoding=0` (UTF-8) so the declared encoding matches the file.
 
 ---
 
-## Styled CLI help
+## Inclusion audit
 
-The `--help` output now uses colour when running in a terminal. Bold command
-names, dimmed descriptions, yellow flags. Falls back to plain text when
-piped or when `NO_COLOR` is in the environment.
-
-```sh
-playback --help
-playback --help | cat        # plain text
-NO_COLOR=1 playback --help   # also plain text
-```
+We identified the fixes in this release using the
+[Gotrino inclusion plugin](https://gotrino.com/resources/inclusion-plugin/) for
+Claude Code. It audits codebases for i18n readiness, inclusive language, and
+encoding assumptions — the ASS and SRT issues above both surfaced through it.
+Worth a look if you care about writing software that works for everyone.

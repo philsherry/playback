@@ -444,7 +444,7 @@ async function run(): Promise<void> {
  * Start times are estimated before synthesis; actual piper audio can run
  * slightly longer than the estimate. This function walks the segments in
  * order and, where an actual audio duration would bleed into the next
- * segment's start time, pushes that start time back just enough to clear it.
+ * segment's start time, pushes that start time back enough to clear it.
  * The adjustment cascades so later segments are shifted consistently.
  * @param segments - Synthesised segments whose start times may overlap.
  * @returns A new array of segments with start times adjusted to prevent overlap.

@@ -26,6 +26,9 @@ tracking. Pull requests welcome on any of these.
 - [ ] Silence trimming — auto-detect and trim dead air in generated audio
 - [ ] Batch piper synthesis — concatenate all narration segments into one call
       per voice to restore prosodic continuity (see `docs/VOICE.md`)
+- [ ] Multi-locale tapes — `tape.{locale}.yaml` files share one terminal
+      recording (`tape.yaml` as fallback); `meta.yaml` keeps a `locale` key for
+      the default; voice selection moves into the locale-specific tape file
 
 ## Captions
 
@@ -93,6 +96,19 @@ Architecture notes for a future web-based viewer:
   when each segment plays relative to the video timeline
 - **Caption sync** — `.vtt` files are already per-voice; the web player
   switches caption tracks alongside the audio
+
+## Localisation
+
+1. Multi-locale tapes — `tape.{locale}.yaml` files share one terminal
+   recording (`tape.yaml` as the single-locale fallback); `meta.yaml` keeps
+   a `locale` key for the default; voice selection moves into the
+   locale-specific tape file
+2. Longest-locale VHS timing — synthesise all locales first, then use the
+   locale with the longest total audio to drive the VHS recording; shorter
+      locales mix against that timeline and end when their audio ends
+3. Multi-locale MKV bundle — `--mkv` extended to bundle one video track with
+   N audio tracks and N subtitle tracks, each tagged with a BCP 47 language
+   code; desktop players (VLC, mpv) handle track selection at playback time
 
 ## Stretch goals
 
