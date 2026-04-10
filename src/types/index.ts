@@ -60,10 +60,10 @@ export type VhsResult = {
  * audio segments from overlapping.
  */
 export type NarrationSegment = {
-	/** Zero-based index of the originating step within `tape.steps`. */
-	stepIndex: number;
 	/** Estimated start time in seconds from the beginning of the video. */
 	startTime: number;
+	/** Zero-based index of the originating step within `tape.steps`. */
+	stepIndex: number;
 	/** Narration text to synthesise, before phonetic substitutions are applied. */
 	text: string;
 };
@@ -72,10 +72,10 @@ export type NarrationSegment = {
  * The TTS script produced by {@link extractTtsScript}.
  */
 export type TtsScript = {
-	/** Extracted narration segments with estimated start times. */
-	segments: NarrationSegment[];
 	/** Absolute path to the human-readable `script.txt` reference file. */
 	scriptFile: string;
+	/** Extracted narration segments with estimated start times. */
+	segments: NarrationSegment[];
 };
 
 // ── Piper runner ───────────────────────────────────────────────────────────
@@ -88,13 +88,13 @@ export type TtsScript = {
  * synthesis if the previous segment's audio runs longer than estimated.
  */
 export type SynthesisedSegment = NarrationSegment & {
-	/** Absolute path to the generated `.wav` file for this segment. */
-	audioFile: string;
 	/**
 	 * Actual duration of the synthesised audio in seconds, measured by
 	 * `ffprobe` after synthesis — not the estimated value from `narrationDuration`.
 	 */
 	audioDuration: number;
+	/** Absolute path to the generated `.wav` file for this segment. */
+	audioFile: string;
 };
 
 // ── Caption generator ──────────────────────────────────────────────────────
@@ -124,18 +124,18 @@ export type CaptionFiles = {
  * `"Created by Playback"` when not overridden.
  */
 export type VideoMetadata = {
-	/** Episode title (`meta.yaml` → `title`). */
-	title: string;
-	/** Episode description (`meta.yaml` → `description`). */
-	comment?: string;
-	/** Creator credit — defaults to `"Created by Playback"`. */
-	artist: string;
 	/** Series name (`meta.yaml` → `series`). */
 	album?: string;
-	/** Episode number (`meta.yaml` → `episode`). */
-	track?: number;
+	/** Creator credit — defaults to `"Created by Playback"`. */
+	artist: string;
+	/** Episode description (`meta.yaml` → `description`). */
+	comment?: string;
 	/** BCP-47 locale (`meta.yaml` → `locale`). */
 	language?: string;
+	/** Episode title (`meta.yaml` → `title`). */
+	title: string;
+	/** Episode number (`meta.yaml` → `episode`). */
+	track?: number;
 };
 
 // ── ffmpeg runner ──────────────────────────────────────────────────────────
@@ -144,15 +144,26 @@ export type VideoMetadata = {
  * Output paths produced by {@link runFfmpeg} after a successful render.
  */
 export type FfmpegResult = {
+	/**
+	 * Absolute path to the 50%-scaled card image `.card.png`, or `null` if no
+	 * poster was generated.
+	 */
+	cardFile: string | null;
 	/** Absolute path to the animated `.gif` for README/docs embedding. */
 	gifFile: string;
+	/** Absolute path to the `.mkv` file, if `--mkv` was requested. */
+	mkvFile?: string;
 	/** Absolute path to the final `.mp4` with audio and subtitles. */
 	mp4File: string;
 	/**
-	 * Absolute path to the poster `.png`, or `null` if no poster step was
-	 * specified in `meta.yaml` and no `poster.png` was present in the tape directory.
+	 * Absolute path to the 1200×630 Open Graph image `.og.png`, or `null` if no
+	 * poster was generated.
+	 */
+	ogFile: string | null;
+	/**
+	 * Absolute path to the full-resolution poster `.poster.png`, or `null` if no
+	 * poster step was specified in `meta.yaml` and no `poster.png` was present in
+	 * the tape directory.
 	 */
 	posterFile: string | null;
-	/** Absolute path to the `.mkv` file, if `--mkv` was requested. */
-	mkvFile?: string;
 };

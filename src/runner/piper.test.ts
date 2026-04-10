@@ -1,8 +1,8 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 vi.mock('node:child_process', () => ({
-	spawn: vi.fn(),
 	execFileSync: vi.fn(),
+	spawn: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
@@ -27,19 +27,19 @@ const mockExistsSync = vi.mocked(existsSync);
  */
 function makeChildMock(exitCode = 0) {
 	const child = {
-		stdin: { write: vi.fn(), end: vi.fn() },
-		stderr: { on: vi.fn() },
 		on: vi.fn((event: string, fn: (arg: unknown) => void) => {
 			if (event === 'close') setImmediate(() => fn(exitCode));
 		}),
+		stderr: { on: vi.fn() },
+		stdin: { end: vi.fn(), write: vi.fn() },
 	};
 
 	return child as unknown as ReturnType<typeof spawn>;
 }
 
 const segment: NarrationSegment = {
-	stepIndex: 0,
 	startTime: 0,
+	stepIndex: 0,
 	text: 'Hello.',
 };
 
@@ -162,14 +162,14 @@ describe('runPiper', () => {
 		mockSpawn.mockReturnValue(makeChildMock());
 		// Simulate ENOENT on the 'error' event rather than 'close'
 		const enoentChild = {
-			stdin: { write: vi.fn(), end: vi.fn() },
-			stderr: { on: vi.fn() },
 			on: vi.fn((event: string, fn: (arg: unknown) => void) => {
 				if (event === 'error') {
 					const err = Object.assign(new Error('spawn piper ENOENT'), { code: 'ENOENT' });
 					setImmediate(() => fn(err));
 				}
 			}),
+			stderr: { on: vi.fn() },
+			stdin: { end: vi.fn(), write: vi.fn() },
 		} as unknown as ReturnType<typeof spawn>;
 
 		mockSpawn.mockReturnValue(enoentChild);

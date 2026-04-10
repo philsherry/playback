@@ -4,6 +4,22 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-04-10
+
+### Added
+
+- `--tapes-dir <path>` flag for `playlist:build` — target any tape directory, including absolute paths outside the project root
+- `eslint-plugin-perfectionist` enforces alphabetical ordering of object keys, interface properties, and type properties across the TypeScript source
+- `*.poster.png` and `*.card.png` (50% scaled) produced alongside `--web` output; poster renamed from `*.png`
+- `og` field in `manifest.json` for future Open Graph image support (`null` until we add a generation strategy)
+
+### Fixed
+
+- AAC encoder `Too many bits > 6144 per frame` warning: added `-ar 44100` to resample Piper's 22050 Hz mono output to the AAC-standard rate before encoding, keeping bits/frame well under the per-channel limit
+- `image2` image sequence pattern warning on `.card.png`: added `-frames:v 1 -update 1` to `generateCard` (matching the flags already used by `extractPoster`)
+- `Guessed Channel Layout: mono` warning on each WAV input: added `-channel_layout mono` per-input so ffmpeg does not need to infer it
+- GIF palette `Duped color` and `255(+1)` warnings: added `reserve_transparent=0` and `stats_mode=diff` to `palettegen`, and `dither=bayer:bayer_scale=5:diff_mode=rectangle` to `paletteuse`; also corrected the palette filtergraph to use `;` between its parallel chains
+
 ## [1.0.5] - 2026-04-09
 
 ### Added

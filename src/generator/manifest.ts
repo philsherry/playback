@@ -16,31 +16,33 @@ import type { ParsedTape } from '../types';
 
 /** A single voice entry in the manifest. */
 interface ManifestVoice {
-	voice: string;
-	video: string;
 	captions: {
-		vtt: string;
 		srt: string;
+		vtt: string;
 	};
+	video: string;
+	voice: string;
 }
 
 /** The top-level manifest structure written to disk. */
 interface Manifest {
-	title: string;
+	card: string | null;
 	description?: string;
-	locale?: string;
-	series?: string;
 	episode?: number;
+	locale?: string;
+	og: string | null;
 	poster: string | null;
+	series?: string;
+	title: string;
 	voices: ManifestVoice[];
 }
 
 /** Data collected per voice during the pipeline run. */
 export interface VoiceOutput {
-	voice: string;
 	mp4File: string;
-	vttFile: string;
 	srtFile: string;
+	voice: string;
+	vttFile: string;
 }
 
 /**
@@ -51,7 +53,9 @@ export interface VoiceOutput {
  * the paths still resolve.
  * @param parsed - Parsed tape and meta data.
  * @param outputDir - Directory where output files live.
- * @param posterFile - Path to the poster image, or `null`.
+ * @param posterFile - Path to the full-resolution poster image, or `null`.
+ * @param cardFile - Path to the 50%-scaled card image, or `null`.
+ * @param ogFile - Path to the 1200×630 Open Graph image, or `null`.
  * @param voiceOutputs - Per-voice output data collected during the pipeline.
  * @returns Absolute path to the generated manifest file.
  */
@@ -59,24 +63,28 @@ export function generateManifest(
 	parsed: ParsedTape,
 	outputDir: string,
 	posterFile: string | null,
+	cardFile: string | null,
+	ogFile: string | null,
 	voiceOutputs: VoiceOutput[]
 ): string {
 	const rel = (filePath: string) => relative(outputDir, filePath);
 
 	const manifest: Manifest = {
-		title: parsed.meta.title,
+		card: cardFile ? rel(cardFile) : null,
 		description: parsed.meta.description,
-		locale: parsed.meta.locale,
-		series: parsed.meta.series,
 		episode: parsed.meta.episode,
+		locale: parsed.meta.locale,
+		og: ogFile ? rel(ogFile) : null,
 		poster: posterFile ? rel(posterFile) : null,
+		series: parsed.meta.series,
+		title: parsed.meta.title,
 		voices: voiceOutputs.map((vo) => ({
-			voice: vo.voice,
-			video: rel(vo.mp4File),
 			captions: {
-				vtt: rel(vo.vttFile),
 				srt: rel(vo.srtFile),
+				vtt: rel(vo.vttFile),
 			},
+			video: rel(vo.mp4File),
+			voice: vo.voice,
 		})),
 	};
 

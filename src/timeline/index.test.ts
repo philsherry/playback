@@ -17,7 +17,7 @@ function makeParsed(steps: Step[]): ParsedTape {
 		dir: '/test',
 		meta: { title: 'Test', voices: ['test_voice'] },
 		posterFile: null,
-		tape: { output: 'test', title: 'Test Tape', steps },
+		tape: { output: 'test', steps, title: 'Test Tape' },
 	};
 }
 
@@ -79,7 +79,7 @@ describe('buildTimeline', () => {
 
 	it('applies narrationOffset to audioStartTime', () => {
 		const parsed = makeParsed([
-			{ action: 'run', narration: 'Delayed', pause: 5, narrationOffset: 1.5 },
+			{ action: 'run', narration: 'Delayed', narrationOffset: 1.5, pause: 5 },
 		]);
 		const tl = buildTimeline(parsed);
 		expect(tl.events[0].narration!.offset).toBe(1.5);
@@ -89,7 +89,7 @@ describe('buildTimeline', () => {
 	it('handles negative narrationOffset', () => {
 		const parsed = makeParsed([
 			{ action: 'run', pause: 2 },
-			{ action: 'run', narration: 'Early', pause: 3, narrationOffset: -1 },
+			{ action: 'run', narration: 'Early', narrationOffset: -1, pause: 3 },
 		]);
 		const tl = buildTimeline(parsed);
 		// Step 1 starts at t=2, offset is -1, so audioStartTime = 1
@@ -171,11 +171,11 @@ describe('applyAudioDurations', () => {
 		]);
 		const tl = buildTimeline(parsed);
 		const segments: SynthesisedSegment[] = [{
-			stepIndex: 0,
-			startTime: 0,
-			text: 'Short text',
-			audioFile: '/tmp/seg.wav',
 			audioDuration: 5, // much longer than pause
+			audioFile: '/tmp/seg.wav',
+			startTime: 0,
+			stepIndex: 0,
+			text: 'Short text',
 		}];
 
 		applyAudioDurations(tl, segments, 0.5);
@@ -191,11 +191,11 @@ describe('applyAudioDurations', () => {
 		const originalDuration = tl.events[0].duration;
 
 		const segments: SynthesisedSegment[] = [{
-			stepIndex: 0,
-			startTime: 0,
-			text: 'test',
-			audioFile: '/tmp/seg.wav',
 			audioDuration: 2, // shorter than step
+			audioFile: '/tmp/seg.wav',
+			startTime: 0,
+			stepIndex: 0,
+			text: 'test',
 		}];
 
 		applyAudioDurations(tl, segments, 0.5);
@@ -210,8 +210,8 @@ describe('applyAudioDurations', () => {
 		const tl = buildTimeline(parsed);
 
 		const segments: SynthesisedSegment[] = [
-			{ stepIndex: 0, startTime: 0, text: 'First', audioFile: '/tmp/0.wav', audioDuration: 5 },
-			{ stepIndex: 1, startTime: 1, text: 'Second', audioFile: '/tmp/1.wav', audioDuration: 1 },
+			{ audioDuration: 5, audioFile: '/tmp/0.wav', startTime: 0, stepIndex: 0, text: 'First' },
+			{ audioDuration: 1, audioFile: '/tmp/1.wav', startTime: 1, stepIndex: 1, text: 'Second' },
 		];
 
 		applyAudioDurations(tl, segments, 0.5);
@@ -228,8 +228,8 @@ describe('applyAudioDurations', () => {
 		const tl = buildTimeline(parsed);
 
 		const segments: SynthesisedSegment[] = [
-			{ stepIndex: 0, startTime: 0, text: 'First', audioFile: '/tmp/0.wav', audioDuration: 3 },
-			{ stepIndex: 2, startTime: 2.1, text: 'Second', audioFile: '/tmp/2.wav', audioDuration: 1 },
+			{ audioDuration: 3, audioFile: '/tmp/0.wav', startTime: 0, stepIndex: 0, text: 'First' },
+			{ audioDuration: 1, audioFile: '/tmp/2.wav', startTime: 2.1, stepIndex: 2, text: 'Second' },
 		];
 
 		applyAudioDurations(tl, segments, 0.5);
@@ -260,7 +260,7 @@ describe('extractSegments', () => {
 
 	it('uses audioStartTime from timeline', () => {
 		const parsed = makeParsed([
-			{ action: 'run', narration: 'Offset', pause: 3, narrationOffset: 1 },
+			{ action: 'run', narration: 'Offset', narrationOffset: 1, pause: 3 },
 		]);
 		const tl = buildTimeline(parsed);
 
@@ -328,11 +328,11 @@ describe('generateVhsFromTimeline', () => {
 		const tl = buildTimeline(parsed);
 
 		const segments: SynthesisedSegment[] = [{
-			stepIndex: 0,
-			startTime: 0,
-			text: 'Long narration text',
-			audioFile: '/tmp/seg.wav',
 			audioDuration: 8,
+			audioFile: '/tmp/seg.wav',
+			startTime: 0,
+			stepIndex: 0,
+			text: 'Long narration text',
 		}];
 
 		applyAudioDurations(tl, segments, 0.5);
@@ -360,8 +360,8 @@ describe('syncSegmentsToTimeline', () => {
 		tl.events[1].narration!.audioStartTime = 5;
 
 		const segments: SynthesisedSegment[] = [
-			{ stepIndex: 0, startTime: 0, text: 'First', audioFile: '/tmp/0.wav', audioDuration: 3 },
-			{ stepIndex: 1, startTime: 1, text: 'Second', audioFile: '/tmp/1.wav', audioDuration: 2 },
+			{ audioDuration: 3, audioFile: '/tmp/0.wav', startTime: 0, stepIndex: 0, text: 'First' },
+			{ audioDuration: 2, audioFile: '/tmp/1.wav', startTime: 1, stepIndex: 1, text: 'Second' },
 		];
 
 		const synced = syncSegmentsToTimeline(tl, segments);

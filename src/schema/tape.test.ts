@@ -76,8 +76,8 @@ describe('TapeSchema', () => {
 		it('accepts a minimal tape', () => {
 			const result = v.safeParse(TapeSchema, {
 				output: 's1/01-install',
-				title: 'Install and Explore',
 				steps: [{ action: 'run' }],
+				title: 'Install and Explore',
 			});
 			expect(result.success).toBe(true);
 		});
@@ -85,12 +85,12 @@ describe('TapeSchema', () => {
 		it('accepts a tape with multiple step types', () => {
 			const result = v.safeParse(TapeSchema, {
 				output: 's1/01-install',
-				title: 'Install and Explore',
 				steps: [
 					{ action: 'type', command: 'npm install' },
 					{ action: 'run', narration: 'Installing.', pause: 5 },
 					{ action: 'comment', narration: 'Done.' },
 				],
+				title: 'Install and Explore',
 			});
 			expect(result.success).toBe(true);
 		});
@@ -99,8 +99,8 @@ describe('TapeSchema', () => {
 	describe('invalid inputs', () => {
 		it('rejects a tape missing output', () => {
 			const result = v.safeParse(TapeSchema, {
-				title: 'Test',
 				steps: [{ action: 'run' }],
+				title: 'Test',
 			});
 			expect(result.success).toBe(false);
 		});
@@ -116,8 +116,8 @@ describe('TapeSchema', () => {
 		it('rejects an empty steps array', () => {
 			const result = v.safeParse(TapeSchema, {
 				output: 's1/01-install',
-				title: 'Test',
 				steps: [],
+				title: 'Test',
 			});
 			expect(result.success).toBe(false);
 		});

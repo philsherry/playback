@@ -48,8 +48,8 @@ describe('generateChapters', () => {
 				{ action: 'comment', narration: 'Next step', pause: 1 },
 			];
 			const timeline = makeTimeline([
-				{ stepIndex: 0, startTime: 0, duration: 2, vhs: { directives: [], sleepSeconds: 2 }, narration: null },
-				{ stepIndex: 1, startTime: 2, duration: 1, vhs: { directives: [], sleepSeconds: 1 }, narration: null },
+				{ duration: 2, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 2 } },
+				{ duration: 1, narration: null, startTime: 2, stepIndex: 1, vhs: { directives: [], sleepSeconds: 1 } },
 			], 3);
 
 			const result = generateChapters(timeline, steps, '/output');
@@ -59,7 +59,7 @@ describe('generateChapters', () => {
 		it('returns the path to chapters.txt', () => {
 			const steps: Step[] = [{ action: 'run', pause: 1 }];
 			const timeline = makeTimeline([
-				{ stepIndex: 0, startTime: 0, duration: 1, vhs: { directives: [], sleepSeconds: 1 }, narration: null },
+				{ duration: 1, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 1 } },
 			], 1);
 
 			const result = generateChapters(timeline, steps, '/output');
@@ -72,8 +72,8 @@ describe('generateChapters', () => {
 				{ action: 'comment', narration: 'Second narration', pause: 1 },
 			];
 			const timeline = makeTimeline([
-				{ stepIndex: 0, startTime: 0, duration: 2, vhs: { directives: [], sleepSeconds: 2 }, narration: { text: 'First narration', offset: 0, audioStartTime: 0, audioDuration: null } },
-				{ stepIndex: 1, startTime: 2, duration: 1, vhs: { directives: [], sleepSeconds: 1 }, narration: { text: 'Second narration', offset: 0, audioStartTime: 2, audioDuration: null } },
+				{ duration: 2, narration: { audioDuration: null, audioStartTime: 0, offset: 0, text: 'First narration' }, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 2 } },
+				{ duration: 1, narration: { audioDuration: null, audioStartTime: 2, offset: 0, text: 'Second narration' }, startTime: 2, stepIndex: 1, vhs: { directives: [], sleepSeconds: 1 } },
 			], 3);
 
 			generateChapters(timeline, steps, '/output');
@@ -92,8 +92,8 @@ describe('generateChapters', () => {
 				{ action: 'run', pause: 2 },
 			];
 			const timeline = makeTimeline([
-				{ stepIndex: 0, startTime: 0, duration: 0, vhs: { directives: [], sleepSeconds: 0 }, narration: null },
-				{ stepIndex: 1, startTime: 0, duration: 2, vhs: { directives: [], sleepSeconds: 2 }, narration: null },
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+				{ duration: 2, narration: null, startTime: 0, stepIndex: 1, vhs: { directives: [], sleepSeconds: 2 } },
 			], 2);
 
 			const result = generateChapters(timeline, steps, '/output');
@@ -108,10 +108,10 @@ describe('generateChapters', () => {
 				{ action: 'comment', pause: 1 },
 			];
 			const timeline = makeTimeline([
-				{ stepIndex: 0, startTime: 0, duration: 0, vhs: { directives: [], sleepSeconds: 0 }, narration: null },
-				{ stepIndex: 1, startTime: 0, duration: 2, vhs: { directives: [], sleepSeconds: 2 }, narration: null },
-				{ stepIndex: 2, startTime: 2, duration: 0, vhs: { directives: [], sleepSeconds: 0 }, narration: null },
-				{ stepIndex: 3, startTime: 2, duration: 1, vhs: { directives: [], sleepSeconds: 1 }, narration: null },
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+				{ duration: 2, narration: null, startTime: 0, stepIndex: 1, vhs: { directives: [], sleepSeconds: 2 } },
+				{ duration: 0, narration: null, startTime: 2, stepIndex: 2, vhs: { directives: [], sleepSeconds: 0 } },
+				{ duration: 1, narration: null, startTime: 2, stepIndex: 3, vhs: { directives: [], sleepSeconds: 1 } },
 			], 3);
 
 			generateChapters(timeline, steps, '/output');
@@ -129,9 +129,9 @@ describe('generateChapters', () => {
 				{ action: 'chapter', title: 'Part Two' },
 			];
 			const timeline = makeTimeline([
-				{ stepIndex: 0, startTime: 0, duration: 0, vhs: { directives: [], sleepSeconds: 0 }, narration: null },
-				{ stepIndex: 1, startTime: 0, duration: 5, vhs: { directives: [], sleepSeconds: 5 }, narration: null },
-				{ stepIndex: 2, startTime: 5, duration: 0, vhs: { directives: [], sleepSeconds: 0 }, narration: null },
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+				{ duration: 5, narration: null, startTime: 0, stepIndex: 1, vhs: { directives: [], sleepSeconds: 5 } },
+				{ duration: 0, narration: null, startTime: 5, stepIndex: 2, vhs: { directives: [], sleepSeconds: 0 } },
 			], 5);
 
 			generateChapters(timeline, steps, '/output');
@@ -149,8 +149,8 @@ describe('generateChapters', () => {
 				{ action: 'run', pause: 10 },
 			];
 			const timeline = makeTimeline([
-				{ stepIndex: 0, startTime: 0, duration: 0, vhs: { directives: [], sleepSeconds: 0 }, narration: null },
-				{ stepIndex: 1, startTime: 0, duration: 10, vhs: { directives: [], sleepSeconds: 10 }, narration: null },
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+				{ duration: 10, narration: null, startTime: 0, stepIndex: 1, vhs: { directives: [], sleepSeconds: 10 } },
 			], 10);
 
 			generateChapters(timeline, steps, '/output');
@@ -167,9 +167,9 @@ describe('generateChapters', () => {
 				{ action: 'comment', narration: 'Another non-chapter', pause: 2 },
 			];
 			const timeline = makeTimeline([
-				{ stepIndex: 0, startTime: 0, duration: 1, vhs: { directives: [], sleepSeconds: 1 }, narration: { text: 'Non-chapter narration', offset: 0, audioStartTime: 0, audioDuration: null } },
-				{ stepIndex: 1, startTime: 1, duration: 0, vhs: { directives: [], sleepSeconds: 0 }, narration: null },
-				{ stepIndex: 2, startTime: 1, duration: 2, vhs: { directives: [], sleepSeconds: 2 }, narration: { text: 'Another non-chapter', offset: 0, audioStartTime: 1, audioDuration: null } },
+				{ duration: 1, narration: { audioDuration: null, audioStartTime: 0, offset: 0, text: 'Non-chapter narration' }, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 1 } },
+				{ duration: 0, narration: null, startTime: 1, stepIndex: 1, vhs: { directives: [], sleepSeconds: 0 } },
+				{ duration: 2, narration: { audioDuration: null, audioStartTime: 1, offset: 0, text: 'Another non-chapter' }, startTime: 1, stepIndex: 2, vhs: { directives: [], sleepSeconds: 2 } },
 			], 3);
 
 			const result = generateChapters(timeline, steps, '/output');

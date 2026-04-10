@@ -2,9 +2,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 vi.mock('node:fs', () => ({
 	existsSync: vi.fn(),
-	readFileSync: vi.fn(),
 	mkdirSync: vi.fn(),
 	readdirSync: vi.fn(),
+	readFileSync: vi.fn(),
 	symlinkSync: vi.fn(),
 }));
 
@@ -54,12 +54,12 @@ function makeParsedTape(commands: string[]): ParsedTape {
 		posterFile: null,
 		tape: {
 			output: 'test',
-			title: 'Test',
 			steps: commands.map((command) => ({
 				action: 'type' as const,
 				command,
 				pause: 1,
 			})),
+			title: 'Test',
 		},
 	};
 }
@@ -70,19 +70,19 @@ function makeParsedTape(commands: string[]): ParsedTape {
  */
 function makeConfig(): WorkspaceConfig {
 	return {
+		constants: {
+			SKILLS_AGENTS_DIR: 'my-skills/agents',
+			SKILLS_ROOT: 'my-skills',
+		},
+		mounts: [
+			{ sandbox: 'my-skills/agents', source: 'my-skills/agents' },
+			{ sandbox: 'my-skills/components', source: 'my-skills/components' },
+		],
 		sources: {
 			'my-skills': {
 				path: '../my-skills',
 				required: ['agents', 'components'],
 			},
-		},
-		mounts: [
-			{ source: 'my-skills/agents', sandbox: 'my-skills/agents' },
-			{ source: 'my-skills/components', sandbox: 'my-skills/components' },
-		],
-		constants: {
-			SKILLS_ROOT: 'my-skills',
-			SKILLS_AGENTS_DIR: 'my-skills/agents',
 		},
 	};
 }
@@ -140,8 +140,8 @@ describe('getWorkspaceConstants', () => {
 		const constants = getWorkspaceConstants(config);
 
 		expect(constants).toEqual({
-			SKILLS_ROOT: 'my-skills',
 			SKILLS_AGENTS_DIR: 'my-skills/agents',
+			SKILLS_ROOT: 'my-skills',
 		});
 
 		constants.EXTRA = 'should not mutate config';
@@ -166,11 +166,11 @@ describe('getRequiredSourceNames', () => {
 			posterFile: null,
 			tape: {
 				output: 'test',
-				title: 'Test',
 				steps: [
 					{ action: 'run', pause: 0.5 },
 					{ action: 'key', command: 'j', pause: 0.3 },
 				],
+				title: 'Test',
 			},
 		};
 
@@ -234,15 +234,15 @@ describe('resolveWorkspaceSources', () => {
 		mockExistsSync.mockReturnValue(true);
 
 		const config: WorkspaceConfig = {
+			constants: {},
+			mounts: [
+				{ sandbox: 'repo-a/docs', source: 'repo-a/docs' },
+				{ sandbox: 'repo-b/docs', source: 'repo-b/docs' },
+			],
 			sources: {
 				'repo-a': { path: '../repo-a', required: [] },
 				'repo-b': { path: '../repo-b', required: [] },
 			},
-			mounts: [
-				{ source: 'repo-a/docs', sandbox: 'repo-a/docs' },
-				{ source: 'repo-b/docs', sandbox: 'repo-b/docs' },
-			],
-			constants: {},
 		};
 
 		const workspace = resolveWorkspaceSources(config, PROJECT_ROOT, new Set(['repo-a']));
@@ -288,9 +288,9 @@ describe('validateWorkspaceReferences', () => {
 	it('passes when tape has no workspace path references', () => {
 		const parsed = makeParsedTape(['ls', 'echo hello']);
 		const workspace: ResolvedWorkspace = {
-			sources: [],
-			mounts: [],
 			constants: {},
+			mounts: [],
+			sources: [],
 		};
 
 		expect(() => validateWorkspaceReferences(parsed, workspace)).not.toThrow();
@@ -301,9 +301,9 @@ describe('validateWorkspaceReferences', () => {
 
 		const parsed = makeParsedTape(['cat my-skills/agents/README.md']);
 		const workspace: ResolvedWorkspace = {
-			sources: [{ name: 'my-skills', absolutePath: '/ext/my-skills', required: [] }],
-			mounts: [{ source: 'my-skills/agents', sandbox: 'my-skills/agents' }],
 			constants: {},
+			mounts: [{ sandbox: 'my-skills/agents', source: 'my-skills/agents' }],
+			sources: [{ absolutePath: '/ext/my-skills', name: 'my-skills', required: [] }],
 		};
 
 		expect(() => validateWorkspaceReferences(parsed, workspace)).not.toThrow();
@@ -314,9 +314,9 @@ describe('validateWorkspaceReferences', () => {
 
 		const parsed = makeParsedTape(['cat my-skills/agents/MISSING.md']);
 		const workspace: ResolvedWorkspace = {
-			sources: [{ name: 'my-skills', absolutePath: '/ext/my-skills', required: [] }],
-			mounts: [{ source: 'my-skills/agents', sandbox: 'my-skills/agents' }],
 			constants: {},
+			mounts: [{ sandbox: 'my-skills/agents', source: 'my-skills/agents' }],
+			sources: [{ absolutePath: '/ext/my-skills', name: 'my-skills', required: [] }],
 		};
 
 		expect(() => validateWorkspaceReferences(parsed, workspace)).toThrow(

@@ -34,12 +34,12 @@ export class PiperError extends Error {
  *   `1.0` = model default speed. `0.85` = 15 % faster; `1.15` = 15 % slower.
  */
 type VoiceSynthConfig = {
+	/** Speaking-rate multiplier (piper default: 1.0). Lower = faster. */
+	lengthScale: number;
 	/** Phonation/timbre variance (piper default: 0.667). Low = consistent speaker identity. */
 	noiseScale: number;
 	/** Phoneme-duration variance (piper default: 0.8). Moderate = natural rhythm. */
 	noiseW: number;
-	/** Speaking-rate multiplier (piper default: 1.0). Lower = faster. */
-	lengthScale: number;
 };
 
 /**
@@ -52,10 +52,10 @@ type VoiceSynthConfig = {
  * `noiseScale`/`noiseW` to balance consistency vs. expressiveness.
  */
 export const VOICE_CONFIG: Record<string, VoiceSynthConfig> = {
-	alan: { noiseScale: 0.1, noiseW: 0.6, lengthScale: 0.82 },
-	alba: { noiseScale: 0.1, noiseW: 0.6, lengthScale: 1.0 },
-	northern_english_male: { noiseScale: 0.1, noiseW: 0.6, lengthScale: 1.0 },
-	southern_english_female: { noiseScale: 0.1, noiseW: 0.6, lengthScale: 1.0 },
+	alan: { lengthScale: 0.82, noiseScale: 0.1, noiseW: 0.6 },
+	alba: { lengthScale: 1.0, noiseScale: 0.1, noiseW: 0.6 },
+	northern_english_male: { lengthScale: 1.0, noiseScale: 0.1, noiseW: 0.6 },
+	southern_english_female: { lengthScale: 1.0, noiseScale: 0.1, noiseW: 0.6 },
 };
 
 
@@ -219,7 +219,7 @@ export async function runPiper(
 	}
 
 	const modelPath = resolveModel(voice, voicesDir);
-	const { noiseScale, noiseW, lengthScale } = VOICE_CONFIG[voice];
+	const { lengthScale, noiseScale, noiseW } = VOICE_CONFIG[voice];
 	const results: SynthesisedSegment[] = [];
 
 	const segmentsDir = join(outputDir, 'segments');
@@ -243,7 +243,7 @@ export async function runPiper(
 		);
 
 		const audioDuration = probeAudioDuration(audioFile);
-		results.push({ ...segment, audioFile, audioDuration });
+		results.push({ ...segment, audioDuration, audioFile });
 	}
 
 	return results;

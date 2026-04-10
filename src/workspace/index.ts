@@ -43,7 +43,7 @@ export function loadWorkspace(projectRoot: string): WorkspaceConfig {
 	const configPath = join(projectRoot, 'workspace.yaml');
 
 	if (!existsSync(configPath)) {
-		return { sources: {}, mounts: [], constants: {} };
+		return { constants: {}, mounts: [], sources: {} };
 	}
 
 	let raw: unknown;
@@ -133,7 +133,7 @@ export function resolveWorkspaceSources(
 			}
 		}
 
-		sources.push({ name, absolutePath, required: source.required });
+		sources.push({ absolutePath, name, required: source.required });
 	}
 
 	const resolvedNames = new Set(sources.map((s) => s.name));
@@ -143,9 +143,9 @@ export function resolveWorkspaceSources(
 	});
 
 	return {
-		sources,
-		mounts,
 		constants: config.constants,
+		mounts,
+		sources,
 	};
 }
 

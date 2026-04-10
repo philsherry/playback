@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import comments from '@eslint-community/eslint-plugin-eslint-comments/configs';
 import globals from 'globals';
 import { jsdoc } from 'eslint-plugin-jsdoc';
+import perfectionist from 'eslint-plugin-perfectionist';
 import tseslint from 'typescript-eslint';
 
 const sharedGlobals = {
@@ -29,6 +30,9 @@ export default tseslint.config(
 			},
 			sourceType: 'module'
 		},
+		plugins: {
+			perfectionist,
+		},
 		rules: {
 			'@eslint-community/eslint-comments/no-unused-disable': 'error',
 			'@typescript-eslint/no-unused-vars': [
@@ -39,7 +43,10 @@ export default tseslint.config(
 				}
 			],
 			'no-undef': 'warn',
-			'no-unused-vars': 'off'
+			'no-unused-vars': 'off',
+			'perfectionist/sort-interfaces': ['error', { type: 'natural' }],
+			'perfectionist/sort-object-types': ['error', { type: 'natural' }],
+			'perfectionist/sort-objects': ['error', { type: 'natural' }],
 		}
 	},
 	{
