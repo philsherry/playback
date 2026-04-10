@@ -1,46 +1,54 @@
-# Release notes — v1.0.5
+# Release notes — v1.0.6
 
-## `vhs.shell` override
+## `--tapes-dir` flag for `playlist:build`
 
-Configure the VHS terminal shell per tape via `meta.yaml`. Defaults to `zsh`
-(the macOS default since Catalina); set this if your tape targets a different
-shell or your recording environment uses `bash`.
+Point `playlist:build` at any tape directory without changing `playback.config.ts`:
 
-```yaml
-vhs:
-  shell: bash
+```sh
+npm run playlist:build -- --tapes-dir /path/to/tapes
+npm run playlist:build -- --tapes-dir /path/to/tapes --web
 ```
 
-This joins the existing `vhs` overrides (`height`, `fontSize`, `theme`,
-`typingSpeed`) and applies only to the tape that declares it.
+Accepts absolute paths, so tapes that live in a separate repo are now first-class
+targets. Other forwarded flags (`--web`, `--vhs-only`, etc.) continue to work
+alongside it.
 
 ---
 
-## SRT timestamp fix
+## Web output images
 
-SRT milliseconds use a comma separator (`00:00:01,500` not `00:00:01.500`).
-The previous code used `.replace('.', ',')` which, by a happy accident,
-always worked — `formatTimestamp` produces one `.` — but was
-expressing the wrong intent. Changed to `.replaceAll('.', ',')` so the
-behaviour is explicit and correct regardless of future format changes.
+`--web` now produces two poster images per episode instead of one:
 
----
+- `*.poster.png` — full-resolution frame extracted from the video (renamed from `*.png`)
+- `*.card.png` — 50%-scaled version for use as a thumbnail or embed image
 
-## ASS subtitle encoding fix
-
-The ASS `Style` header included `Encoding=1` (Windows ANSI), while the
-generator writes the file as UTF-8. Most renderers auto-detect and ignore this field,
-but if libass ever respected it, non-ASCII characters in narration text
-would render as Mojibake — curly quotes (`'`) becoming `â€™`, for example.
-
-Changed to `Encoding=0` (UTF-8) so the declared encoding matches the file.
+`manifest.json` includes both. A third field, `og`, holds `null` until a generation
+strategy lands — it will carry a 1200×630 Open Graph image.
 
 ---
 
-## Inclusion audit
+## ffmpeg warning fixes
 
-We identified the fixes in this release using the
-[Gotrino inclusion plugin](https://gotrino.com/resources/inclusion-plugin/) for
-Claude Code. It audits codebases for i18n readiness, inclusive language, and
-encoding assumptions — the ASS and SRT issues above both surfaced through it.
-Worth a look if you care about writing software that works for everyone.
+Three recurring ffmpeg warnings are now suppressed:
+
+**`Too many bits 8192 > 6144 per frame`** — Piper outputs mono WAV at 22050 Hz. At
+that sample rate the AAC encoder computed ~8192 bits/frame, exceeding the 6144
+per-channel limit. Adding `-ar 44100` resamples before encoding, dropping the
+per-frame count to ~2973.
+
+**`image sequence pattern`** — `generateCard` was missing `-frames:v 1 -update 1`,
+which `extractPoster` already had. ffmpeg requires these flags when writing a
+single image to a plain `.png` path.
+
+**`Guessed Channel Layout: mono`** — ffmpeg was guessing the channel layout of each
+Piper WAV input. Explicit `-channel_layout mono` per-input provides the answer
+upfront.
+
+**GIF palette `Duped color` / `255(+1)`** — `palettegen` was reserving one palette
+slot for transparency (terminal video has none) and sampling all pixels including
+large static background regions. `reserve_transparent=0` reclaims the slot;
+`stats_mode=diff` limits sampling to pixels that actually change between frames,
+which suits terminal recordings and eliminates the duplicate entries. `paletteuse`
+now uses `dither=bayer:bayer_scale=5:diff_mode=rectangle` for crisper text
+rendering. The filtergraph separator between the two parallel chains after `split`
+was also corrected from `,` to `;`.

@@ -1,12 +1,12 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
+	clean: true,
+	dts: true,
 	entry: {
 		cli: 'src/cli.ts',
-		config: 'src/config.ts',
+		config: 'src/config.ts'
 	},
 	format: ['esm'],
-	dts: true,
-	clean: true,
-	target: 'node22',
+	target: 'node22'
 });

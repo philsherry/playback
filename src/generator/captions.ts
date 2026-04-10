@@ -40,8 +40,8 @@ function formatTimestamp(seconds: number): string {
 
 /** A single caption cue with start and end times and display text. */
 type Cue = {
-	start: number;
 	end: number;
+	start: number;
 	text: string;
 };
 

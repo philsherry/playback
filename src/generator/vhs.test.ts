@@ -8,8 +8,8 @@ const baseTape: ParsedTape = {
 	posterFile: null,
 	tape: {
 		output: 's1/01-test',
-		title: 'Test Tape',
 		steps: [{ action: 'run' }],
+		title: 'Test Tape',
 	},
 };
 

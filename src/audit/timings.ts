@@ -49,9 +49,9 @@ function sign(n: number): string {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface Fix {
-	stepIndex: number;
-	oldPause: number;
 	newPause: number;
+	oldPause: number;
+	stepIndex: number;
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -81,7 +81,7 @@ export function auditTimings(
 		segByStep.set(seg.stepIndex, seg);
 	}
 
-	const COL = { step: 5, narration: 46, wav: 8, pause: 7, delta: 8, rec: 8 };
+	const COL = { delta: 8, narration: 46, pause: 7, rec: 8, step: 5, wav: 8 };
 	const header = [
 		'Step'.padEnd(COL.step),
 		'Narration'.padEnd(COL.narration),
@@ -114,9 +114,9 @@ export function auditTimings(
 			shortfalls++;
 			if (fix && rec !== null) {
 				fixes.push({
-					stepIndex: event.stepIndex,
-					oldPause: Math.round(pause * 100) / 100,
 					newPause: Math.round(rec * 100) / 100,
+					oldPause: Math.round(pause * 100) / 100,
+					stepIndex: event.stepIndex,
 				});
 			}
 		}

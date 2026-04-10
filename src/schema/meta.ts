@@ -29,26 +29,8 @@ export const MetaSchema = v.object({
 	artist: v.optional(v.string()),
 	/** Human-readable description of the episode, used in video metadata. */
 	description: v.optional(v.string()),
-	/** BCP-47 locale tag for the episode (e.g. `"en-GB"`). Defaults to the voice locale. */
-	locale: v.optional(v.string()),
-	/**
-	 * 1-indexed step number to use as the auto-generated poster frame.
-	 *
-	 * The frame is captured at the end of that step — after its output is
-	 * visible on screen — so the poster shows a meaningful terminal state.
-	 * Ignored if a `poster.png` file is present in the tape directory.
-	 */
-	poster: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
 	/** 1-indexed episode number within the series. Used for ordering and display. */
 	episode: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
-	/** Series slug — matches the directory prefix (e.g. `"s1-getting-started"`). */
-	series: v.optional(v.string()),
-	/** Taxonomy tags for the episode (e.g. `["accessibility", "components"]`). */
-	tags: v.optional(v.array(v.string())),
-	/** Human-readable episode title. Displayed in the video player and playlist. */
-	title: v.string(),
-	/** Semantic version of the skills file used in this recording (e.g. `"1.2.0"`). */
-	version: v.optional(v.string()),
 	/**
 	 * Working directory for VHS recording, relative to the project root.
 	 *
@@ -69,7 +51,24 @@ export const MetaSchema = v.object({
 	 * this unset so the pipeline automatically adjusts timing.
 	 */
 	fixedTiming: v.optional(v.boolean()),
-	vhsCwd: v.optional(v.string()),
+	/** BCP-47 locale tag for the episode (e.g. `"en-GB"`). Defaults to the voice locale. */
+	locale: v.optional(v.string()),
+	/**
+	 * 1-indexed step number to use as the auto-generated poster frame.
+	 *
+	 * The frame is captured at the end of that step — after its output is
+	 * visible on screen — so the poster shows a meaningful terminal state.
+	 * Ignored if a `poster.png` file is present in the tape directory.
+	 */
+	poster: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+	/** Series slug — matches the directory prefix (e.g. `"s1-getting-started"`). */
+	series: v.optional(v.string()),
+	/** Taxonomy tags for the episode (e.g. `["accessibility", "components"]`). */
+	tags: v.optional(v.array(v.string())),
+	/** Human-readable episode title. Displayed in the video player and playlist. */
+	title: v.string(),
+	/** Semantic version of the skills file used in this recording (e.g. `"1.2.0"`). */
+	version: v.optional(v.string()),
 	/**
 	 * Optional VHS recording overrides.
 	 *
@@ -78,17 +77,18 @@ export const MetaSchema = v.object({
 	 * more vertical space, a smaller font, or a different theme.
 	 */
 	vhs: v.optional(v.object({
-		/** Recording height in pixels. Default: 660 (TERMINAL_HEIGHT). */
-		height: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
 		/** Font size in pixels. Default: 16 (TERMINAL_FONT_SIZE). */
 		fontSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+		/** Recording height in pixels. Default: 660 (TERMINAL_HEIGHT). */
+		height: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+		/** Shell for the VHS terminal session (e.g. `"bash"`). Default: `"zsh"`. */
+		shell: v.optional(v.string()),
 		/** JSON theme string for VHS `Set Theme`. Default: Amber theme. */
 		theme: v.optional(v.string()),
 		/** Typing speed (e.g. `"50ms"`). Default: `"75ms"`. */
 		typingSpeed: v.optional(v.string()),
-		/** Shell for the VHS terminal session (e.g. `"bash"`). Default: `"zsh"`. */
-		shell: v.optional(v.string()),
 	})),
+	vhsCwd: v.optional(v.string()),
 	/**
 	 * Voice models to use for narration synthesis.
 	 *

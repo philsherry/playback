@@ -16,24 +16,6 @@ import type { Voice } from './schema/meta';
  */
 export interface PlaybackConfig {
 	/**
-	 * Directory where rendered output (mp4, gif, webvtt) is written.
-	 * @default 'blockbuster'
-	 */
-	outputDir?: string;
-
-	/**
-	 * Directory containing piper-tts `.onnx` voice model files.
-	 * @default 'voices'
-	 */
-	voicesDir?: string;
-
-	/**
-	 * Root directory scanned for tape directories by `playlist:build`.
-	 * @default 'tapes'
-	 */
-	tapesDir?: string;
-
-	/**
 	 * Default voices when not specified in a tape's `meta.yaml`.
 	 * Must contain at least one entry.
 	 * @default ['northern_english_male']
@@ -48,13 +30,30 @@ export interface PlaybackConfig {
 	nudgeStep?: number;
 
 	/**
+	 * Directory where rendered output (mp4, gif, webvtt) is written.
+	 * @default 'blockbuster'
+	 */
+	outputDir?: string;
+
+	/**
+	 * Root directory scanned for tape directories by `playlist:build`.
+	 * @default 'tapes'
+	 */
+	tapesDir?: string;
+
+	/**
+	 * Directory containing piper-tts `.onnx` voice model files.
+	 * @default 'voices'
+	 */
+	voicesDir?: string;
+
+	/**
 	 * Generate web-friendly output alongside the standard pipeline output.
 	 * When enabled, produces a standalone `.m4a` audio track per voice and
 	 * a `manifest.json` listing all available assets for web playback.
 	 * @default false
 	 */
 	webOutput?: boolean;
-
 }
 
 /** Resolved config with all defaults applied. */
@@ -72,12 +71,12 @@ export function defineConfig(config: PlaybackConfig): PlaybackConfig {
 
 /** Defaults applied when no config file is found, or for any omitted fields. */
 export const CONFIG_DEFAULTS: ResolvedConfig = {
-	outputDir: 'blockbuster',
-	voicesDir: 'voices',
-	tapesDir: 'tapes',
 	defaultVoices: ['northern_english_male'],
 	nudgeStep: 0.25,
-	webOutput: false,
+	outputDir: 'blockbuster',
+	tapesDir: 'tapes',
+	voicesDir: 'voices',
+	webOutput: false
 };
 
 /**
@@ -94,17 +93,21 @@ export async function loadConfig(): Promise<ResolvedConfig> {
 	const candidates = [
 		resolve(cwd, 'playback.config.js'),
 		resolve(cwd, 'playback.config.mjs'),
-		resolve(cwd, 'playback.config.ts'),
+		resolve(cwd, 'playback.config.ts')
 	];
 
 	for (const candidate of candidates) {
 		try {
-			const mod = await import(candidate) as { default?: PlaybackConfig } | PlaybackConfig;
+			const mod = (await import(candidate)) as
+				| { default?: PlaybackConfig }
+				| PlaybackConfig;
 			const userConfig: PlaybackConfig =
-				('default' in mod && mod.default != null) ? mod.default : mod as PlaybackConfig;
+				'default' in mod && mod.default != null
+					? mod.default
+					: (mod as PlaybackConfig);
 			return {
 				...CONFIG_DEFAULTS,
-				...userConfig,
+				...userConfig
 			};
 		} catch {
 			// Not found or not loadable in this runtime — try next candidate.

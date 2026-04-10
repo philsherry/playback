@@ -36,18 +36,18 @@ title: Test Episode
  */
 function setupFs({
 	dirExists = true,
-	tapeExists = true,
+	metaContent = VALID_META_YAML,
 	metaExists = true,
 	posterExists = false,
 	tapeContent = VALID_TAPE_YAML,
-	metaContent = VALID_META_YAML,
+	tapeExists = true,
 }: {
 	dirExists?: boolean;
-	tapeExists?: boolean;
+	metaContent?: string;
 	metaExists?: boolean;
 	posterExists?: boolean;
 	tapeContent?: string;
-	metaContent?: string;
+	tapeExists?: boolean;
 } = {}) {
 	mockExistsSync.mockImplementation((p) => {
 		const path = String(p);

@@ -46,43 +46,43 @@ import { escapeVhs } from '../utilities/escape';
 export type VhsAction = {
 	/** VHS directive lines (e.g. `['Type "npm install"', 'Enter']`). */
 	directives: string[];
-	/** The Sleep value in seconds that follows the directives. */
-	sleepSeconds: number;
 	/**
 	 * Total inter-command sleep embedded in directives (`narrate` steps only).
 	 * Used by `eventDuration` to calculate the total without parsing directives.
 	 */
 	embeddedSleepSeconds?: number;
+	/** The Sleep value in seconds that follows the directives. */
+	sleepSeconds: number;
 };
 
 /**
  * Narration metadata for a timeline event.
  */
 export type TimelineNarration = {
-	/** Text to synthesise. */
-	text: string;
-	/** Offset in seconds from `narrationOffset` in tape.yaml. */
-	offset: number;
-	/** Absolute start time for the audio clip: `startTime + offset`. */
-	audioStartTime: number;
 	/** Actual audio duration after synthesis; `null` before synthesis. */
 	audioDuration: number | null;
+	/** Absolute start time for the audio clip: `startTime + offset`. */
+	audioStartTime: number;
+	/** Offset in seconds from `narrationOffset` in tape.yaml. */
+	offset: number;
+	/** Text to synthesise. */
+	text: string;
 };
 
 /**
  * A single event on the timeline, corresponding to one tape step.
  */
 export type TimelineEvent = {
-	/** Zero-based index of the originating step in `tape.steps`. */
-	stepIndex: number;
-	/** Absolute start time in seconds from the beginning of the recording. */
-	startTime: number;
 	/** Total duration this event occupies in the timeline. */
 	duration: number;
-	/** VHS directives and sleep value for this event. */
-	vhs: VhsAction;
 	/** Narration segment, or `null` if this step has no narration. */
 	narration: TimelineNarration | null;
+	/** Absolute start time in seconds from the beginning of the recording. */
+	startTime: number;
+	/** Zero-based index of the originating step in `tape.steps`. */
+	stepIndex: number;
+	/** VHS directives and sleep value for this event. */
+	vhs: VhsAction;
 };
 
 /**
@@ -198,14 +198,14 @@ function buildVhsAction(step: Step): VhsAction {
 					const tailSleep = round2(Math.max(sleep, pause));
 					return {
 						directives,
-						sleepSeconds: tailSleep,
 						embeddedSleepSeconds: round2(embeddedSleep),
+						sleepSeconds: tailSleep,
 					};
 				}
 			}
 
 			// Unreachable — commands has minLength(1) — but satisfies TypeScript.
-			return { directives, sleepSeconds: 0, embeddedSleepSeconds: 0 };
+			return { directives, embeddedSleepSeconds: 0, sleepSeconds: 0 };
 		}
 	}
 }
@@ -261,19 +261,19 @@ export function buildTimeline(parsed: ParsedTape): Timeline {
 		const narrationText = step.action !== 'chapter' ? step.narration : undefined;
 		const narration: TimelineNarration | null = narrationText
 			? {
-					text: narrationText,
-					offset,
-					audioStartTime: cursor + offset,
 					audioDuration: null,
+					audioStartTime: cursor + offset,
+					offset,
+					text: narrationText,
 				}
 			: null;
 
 		events.push({
-			stepIndex: i,
-			startTime: cursor,
 			duration,
-			vhs,
 			narration,
+			startTime: cursor,
+			stepIndex: i,
+			vhs,
 		});
 
 		cursor += duration;
@@ -386,8 +386,8 @@ export function extractSegments(
 	for (const event of timeline.events) {
 		if (event.narration) {
 			segments.push({
-				stepIndex: event.stepIndex,
 				startTime: event.narration.audioStartTime,
+				stepIndex: event.stepIndex,
 				text: event.narration.text,
 			});
 		}

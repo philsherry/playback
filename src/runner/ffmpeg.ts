@@ -110,13 +110,13 @@ function buildAudioFilterComplex(segments: SynthesisedSegment[]): string {
 function bcp47ToIso639(bcp47: string): string | null {
 	const primary = bcp47.split('-')[0].toLowerCase();
 	const map: Record<string, string> = {
-		en: 'eng',
 		cy: 'cym',
-		gd: 'gla',
-		ga: 'gle',
-		fr: 'fre',
 		de: 'ger',
+		en: 'eng',
 		es: 'spa',
+		fr: 'fre',
+		ga: 'gle',
+		gd: 'gla',
 	};
 	return map[primary] ?? null;
 }
@@ -183,13 +183,14 @@ async function stitchMp4(
 ): Promise<void> {
 	let videoFilter = buildVideoFilter(captions.assFile);
 	if (overlayFilter) {
-		videoFilter += ',' + overlayFilter;
+		videoFilter += `,${overlayFilter}`;
 	}
 	const metaFlags = buildMetadataFlags(metadata);
 
 	const inputs = ['-i', rawMp4];
 	for (const seg of segments) {
-		inputs.push('-i', seg.audioFile);
+		// Declare channel layout explicitly so ffmpeg does not need to guess.
+		inputs.push('-channel_layout', 'mono', '-i', seg.audioFile);
 	}
 
 	// Chapter metadata file — added as the last input so its index is
@@ -230,6 +231,7 @@ async function stitchMp4(
 		'-crf', '18',
 		'-preset', 'slow',
 		'-c:a', 'aac',
+		'-ar', '44100',
 		'-b:a', '128k',
 		...metaFlags,
 		outputFile,
@@ -251,13 +253,23 @@ async function generateGif(mp4File: string, gifFile: string): Promise<void> {
 	// Two-pass palette approach produces much better quality than ffmpeg's
 	// default GIF encoding. First pass generates an optimised palette from
 	// the video content; second pass uses it to dither the output.
+	//
+	// reserve_transparent=0 — reclaims the slot palettegen reserves for
+	// alpha (terminal video has no transparency), giving all 256 entries
+	// to actual colours.
+	//
+	// stats_mode=diff — samples only pixels that change between frames
+	// rather than all pixels. Terminal recordings have large static
+	// background regions; diff mode focuses the palette on the content
+	// that actually moves, which reduces duplicate palette entries.
+	//
+	// The first chain (fps → scale → split) feeds two named pads.
+	// The two chains below it are parallel, so they use `;` separators.
 	const paletteFilter = [
-		`fps=15`,
-		`scale=${GIF_WIDTH}:${GIF_HEIGHT}:flags=lanczos`,
-		`split[s0][s1]`,
-		`[s0]palettegen[p]`,
-		`[s1][p]paletteuse`,
-	].join(',');
+		`fps=15,scale=${GIF_WIDTH}:${GIF_HEIGHT}:flags=lanczos,split[s0][s1]`,
+		`[s0]palettegen=reserve_transparent=0:stats_mode=diff[p]`,
+		`[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`,
+	].join(';');
 
 	await spawnFfmpeg([
 		'-i', mp4File,
@@ -273,7 +285,7 @@ async function generateGif(mp4File: string, gifFile: string): Promise<void> {
  * Used to generate the episode poster image when `meta.yaml` specifies a
  * `poster` step number.
  * @param mp4File - Path to the `.mp4` to extract the frame from.
- * @param posterFile - Destination path for the output `.png`.
+ * @param posterFile - Destination path for the output `.poster.png`.
  * @param time - Timestamp in seconds at which to capture the poster frame.
  */
 async function extractPoster(
@@ -289,6 +301,25 @@ async function extractPoster(
 		posterFile,
 	]);
 }
+
+/**
+ * Generates a 50%-scaled card image from a poster `.png`.
+ *
+ * Used to produce the `*.card.png` alongside the full-resolution
+ * `*.poster.png` for web manifest output.
+ * @param posterFile - Path to the full-resolution poster image.
+ * @param cardFile - Destination path for the output `.card.png`.
+ */
+async function generateCard(posterFile: string, cardFile: string): Promise<void> {
+	await spawnFfmpeg([
+		'-i', posterFile,
+		'-vf', 'scale=iw/2:ih/2',
+		'-frames:v', '1',
+		'-update', '1',
+		cardFile,
+	]);
+}
+
 
 /**
  * Combines the raw VHS terminal recording with synthesised narration audio
@@ -317,7 +348,8 @@ async function stitchMkv(
 
 	const inputs = ['-i', rawMp4];
 	for (const seg of segments) {
-		inputs.push('-i', seg.audioFile);
+		// Declare channel layout explicitly so ffmpeg does not need to guess.
+		inputs.push('-channel_layout', 'mono', '-i', seg.audioFile);
 	}
 
 	// SRT subtitle input — index is 1 + segments.length
@@ -371,6 +403,7 @@ async function stitchMkv(
 		'-crf', '18',
 		'-preset', 'slow',
 		'-c:a', 'aac',
+		'-ar', '44100',
 		'-b:a', '128k',
 		'-c:s', 'srt',
 		'-metadata:s:s:0', 'title=Captions',
@@ -416,13 +449,15 @@ export async function runFfmpeg(
 ): Promise<FfmpegResult> {
 	const mp4File = join(outputDir, `${outputName}.mp4`);
 	const gifFile = join(outputDir, `${outputName}.gif`);
-	const posterFile = join(outputDir, `${outputName}.png`);
+	const posterFile = join(outputDir, `${outputName}.poster.png`);
+	const cardFile = join(outputDir, `${outputName}.card.png`);
 
 	await stitchMp4(rawMp4, segments, mp4File, captions, metadata, overlayFilter, chapterFile);
 	await generateGif(mp4File, gifFile);
 
 	// Poster: explicit file takes priority over frame extraction
 	let resolvedPoster: string | null = null;
+	let resolvedCard: string | null = null;
 
 	if (posterSourceFile) {
 		resolvedPoster = posterSourceFile;
@@ -431,7 +466,12 @@ export async function runFfmpeg(
 		resolvedPoster = posterFile;
 	}
 
-	const result: FfmpegResult = { gifFile, mp4File, posterFile: resolvedPoster };
+	if (resolvedPoster !== null) {
+		await generateCard(resolvedPoster, cardFile);
+		resolvedCard = cardFile;
+	}
+
+	const result: FfmpegResult = { cardFile: resolvedCard, gifFile, mp4File, ogFile: null, posterFile: resolvedPoster };
 
 	if (mkv) {
 		const mkvFile = join(outputDir, `${outputName}.mkv`);

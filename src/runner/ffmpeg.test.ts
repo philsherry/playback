@@ -5,12 +5,12 @@ import type { VideoMetadata } from '../types';
 describe('buildMetadataFlags', () => {
 	it('includes all populated fields', () => {
 		const meta: VideoMetadata = {
-			title: 'Install and explore',
-			comment: 'Clone the repo and look around',
-			artist: 'Created by Playback',
 			album: 's1-getting-started',
-			track: 1,
+			artist: 'Created by Playback',
+			comment: 'Clone the repo and look around',
 			language: 'en-GB',
+			title: 'Install and explore',
+			track: 1,
 		};
 
 		const flags = buildMetadataFlags(meta);
@@ -25,8 +25,8 @@ describe('buildMetadataFlags', () => {
 
 	it('omits undefined fields', () => {
 		const meta: VideoMetadata = {
-			title: 'Minimal tape',
 			artist: 'Created by Playback',
+			title: 'Minimal tape',
 		};
 
 		const flags = buildMetadataFlags(meta);
@@ -41,9 +41,9 @@ describe('buildMetadataFlags', () => {
 
 	it('omits empty string fields', () => {
 		const meta: VideoMetadata = {
-			title: 'Test',
-			comment: '',
 			artist: 'Created by Playback',
+			comment: '',
+			title: 'Test',
 		};
 
 		const flags = buildMetadataFlags(meta);
@@ -53,8 +53,8 @@ describe('buildMetadataFlags', () => {
 
 	it('uses a custom artist when provided', () => {
 		const meta: VideoMetadata = {
-			title: 'Custom credit',
 			artist: 'Phil Sherry',
+			title: 'Custom credit',
 		};
 
 		const flags = buildMetadataFlags(meta);
@@ -65,9 +65,9 @@ describe('buildMetadataFlags', () => {
 
 	it('sets stream-level audio language from BCP-47 locale', () => {
 		const meta: VideoMetadata = {
-			title: 'Language test',
 			artist: 'Test',
 			language: 'en-GB',
+			title: 'Language test',
 		};
 
 		const flags = buildMetadataFlags(meta);
@@ -78,8 +78,8 @@ describe('buildMetadataFlags', () => {
 
 	it('omits stream-level language when locale is absent', () => {
 		const meta: VideoMetadata = {
-			title: 'No locale',
 			artist: 'Test',
+			title: 'No locale',
 		};
 
 		const flags = buildMetadataFlags(meta);
@@ -89,9 +89,9 @@ describe('buildMetadataFlags', () => {
 
 	it('handles Welsh locale', () => {
 		const meta: VideoMetadata = {
-			title: 'Welsh test',
 			artist: 'Test',
 			language: 'cy',
+			title: 'Welsh test',
 		};
 
 		const flags = buildMetadataFlags(meta);

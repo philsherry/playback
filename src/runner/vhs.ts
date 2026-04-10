@@ -53,7 +53,7 @@ export async function runVhs(
 	if (!useProjectCwd) {
 		// Wipe the VHS working directory so commands like `git clone` always run
 		// into a clean state, even on re-runs.
-		rmSync(vhsWorkDir, { recursive: true, force: true });
+		rmSync(vhsWorkDir, { force: true, recursive: true });
 		mkdirSync(vhsWorkDir, { recursive: true });
 		if (!clonesWorkspaceSource(parsed, workspace)) {
 			prepareWorkspaceSandbox(vhsWorkDir, workspace);
@@ -115,7 +115,7 @@ function spawnVhs(tapeFile: string, cwd: string): Promise<void> {
 			...process.env,
 			PATH: `${FFMPEG_FULL_BIN}:${process.env.PATH ?? ''}`,
 		};
-		const child = spawn('vhs', [tapeFile], { cwd, stdio: 'inherit', env });
+		const child = spawn('vhs', [tapeFile], { cwd, env, stdio: 'inherit' });
 
 		child.on('error', (err) => {
 			if ((err as Error & { code?: string }).code === 'ENOENT') {

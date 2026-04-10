@@ -13,25 +13,25 @@ import type { ParsedTape } from '../types';
  * @returns Minimal parsed tape fixture.
  */
 function makeParsed(overrides: {
+	description?: string;
+	steps?: ParsedTape['tape']['steps'];
 	title?: string;
 	version?: string;
-	description?: string;
 	voices?: string[];
-	steps?: ParsedTape['tape']['steps'];
 }): ParsedTape {
 	return {
 		dir: '/test',
-		posterFile: null,
 		meta: {
+			description: overrides.description,
 			title: overrides.title ?? 'Test Video',
 			version: overrides.version,
-			description: overrides.description,
 			voices: overrides.voices ?? ['northern_english_male'],
 		},
+		posterFile: null,
 		tape: {
 			output: 'test',
-			title: overrides.title ?? 'Test Video',
 			steps: overrides.steps ?? [{ action: 'run', pause: 1 }],
+			title: overrides.title ?? 'Test Video',
 		},
 	};
 }

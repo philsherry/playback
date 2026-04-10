@@ -12,18 +12,18 @@ const mockWriteFileSync = vi.mocked(writeFileSync);
 
 const segments: SynthesisedSegment[] = [
 	{
-		stepIndex: 0,
-		startTime: 0,
-		text: 'Hello world.',
-		audioFile: '/output/segment-00-northern_english_male.wav',
 		audioDuration: 1.5,
+		audioFile: '/output/segment-00-northern_english_male.wav',
+		startTime: 0,
+		stepIndex: 0,
+		text: 'Hello world.',
 	},
 	{
-		stepIndex: 2,
-		startTime: 3.0,
-		text: 'Second segment.',
-		audioFile: '/output/segment-02-northern_english_male.wav',
 		audioDuration: 2.0,
+		audioFile: '/output/segment-02-northern_english_male.wav',
+		startTime: 3.0,
+		stepIndex: 2,
+		text: 'Second segment.',
 	},
 ];
 
@@ -55,12 +55,12 @@ function parseTimestamp(ts: string): number {
  * @param vtt - WebVTT file content.
  * @returns Parsed cue start and end times.
  */
-function parseCueTimes(vtt: string): Array<{ start: number; end: number }> {
+function parseCueTimes(vtt: string): Array<{ end: number; start: number; }> {
 	const pattern = /(\d{2}:\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}:\d{2}\.\d{3})/g;
-	const cues: Array<{ start: number; end: number }> = [];
+	const cues: Array<{ end: number; start: number; }> = [];
 	let match;
 	while ((match = pattern.exec(vtt)) !== null) {
-		cues.push({ start: parseTimestamp(match[1]), end: parseTimestamp(match[2]) });
+		cues.push({ end: parseTimestamp(match[2]), start: parseTimestamp(match[1]) });
 	}
 	return cues;
 }
@@ -207,18 +207,18 @@ describe('generateCaptions', () => {
 			// audioDuration (2.5 s) would fit, but buildCues() ignores it.
 			const tightSegments: SynthesisedSegment[] = [
 				{
-					stepIndex: 0,
-					startTime: 0,
-					text: 'one two three four five six seven eight nine ten',
-					audioFile: '/output/seg-0.wav',
 					audioDuration: 2.5,
+					audioFile: '/output/seg-0.wav',
+					startTime: 0,
+					stepIndex: 0,
+					text: 'one two three four five six seven eight nine ten',
 				},
 				{
-					stepIndex: 1,
-					startTime: 3.0,
-					text: 'Done.',
-					audioFile: '/output/seg-1.wav',
 					audioDuration: 1.0,
+					audioFile: '/output/seg-1.wav',
+					startTime: 3.0,
+					stepIndex: 1,
+					text: 'Done.',
 				},
 			];
 			generateCaptions(tightSegments, '/output', 'ep');

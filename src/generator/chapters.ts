@@ -48,14 +48,14 @@ function chapterTitle(
  * Result of generating a chapter file.
  */
 export type ChapterResult = {
-	/** Absolute path to the generated `chapters.txt` file. */
-	path: string;
 	/**
 	 * When `true`, the file was built from explicit `chapter` steps and should
 	 * be embedded in the output MP4. When `false`, it was auto-generated from
 	 * all events and is written only for benchmarking / ffprobe diffing.
 	 */
 	hasExplicit: boolean;
+	/** Absolute path to the generated `chapters.txt` file. */
+	path: string;
 };
 
 /**
@@ -124,5 +124,5 @@ export function generateChapters(
 
 	const chapterFile = join(outputDir, 'chapters.txt');
 	writeFileSync(chapterFile, lines.join('\n') + '\n', 'utf8');
-	return { path: chapterFile, hasExplicit };
+	return { hasExplicit, path: chapterFile };
 }

@@ -166,7 +166,7 @@ async function run(): Promise<void> {
 	const parsed = parseTape(tapePath, getWorkspaceConstants(workspaceConfig));
 	const requiredSources = getRequiredSourceNames(parsed, workspaceConfig);
 	const workspace = resolveWorkspaceSources(workspaceConfig, projectRoot, requiredSources);
-	const { tape, meta } = parsed;
+	const { meta, tape } = parsed;
 	const outputDir = join(DIST_DIR, tape.output);
 	const outputSlug = basename(tape.output);
 
@@ -204,12 +204,12 @@ async function run(): Promise<void> {
 	const captionMarginV = (vhsHeight != null && vhsHeight >= VIDEO_HEIGHT) ? 40 : undefined;
 
 	const videoMetadata: VideoMetadata = {
-		title: meta.title,
-		comment: meta.description,
-		artist: meta.artist ?? 'Created by Playback',
 		album: meta.series,
-		track: meta.episode,
+		artist: meta.artist ?? 'Created by Playback',
+		comment: meta.description,
 		language: meta.locale,
+		title: meta.title,
+		track: meta.episode,
 	};
 
 	const voices = (meta.voices ?? config.defaultVoices) as Voice[];
@@ -257,10 +257,10 @@ async function run(): Promise<void> {
 			const text = narrationByStep.get(event.stepIndex);
 			if (text) {
 				event.narration = {
-					text,
-					offset: 0,
-					audioStartTime: event.startTime,
 					audioDuration: null,
+					audioStartTime: event.startTime,
+					offset: 0,
+					text,
 				};
 			}
 		}
@@ -275,7 +275,7 @@ async function run(): Promise<void> {
 		console.log('  Recording terminal…');
 		const { rawMp4 } = await runVhs(parsed, DIST_DIR, workspace);
 		console.log('  No narration found — skipping audio and captions.');
-		await runFfmpeg(rawMp4, [], { assFile: '', vttFile: '', srtFile: '' }, outputDir, outputSlug, posterTime, parsed.posterFile, videoMetadata, undefined, chaptersNoNarr.hasExplicit ? chaptersNoNarr.path : undefined);
+		await runFfmpeg(rawMp4, [], { assFile: '', srtFile: '', vttFile: '' }, outputDir, outputSlug, posterTime, parsed.posterFile, videoMetadata, undefined, chaptersNoNarr.hasExplicit ? chaptersNoNarr.path : undefined);
 		console.log(`\n✓ Done. Output: ${outputDir}`);
 		return;
 	}
@@ -367,6 +367,8 @@ async function run(): Promise<void> {
 	// Step 4 — Process each voice: captions + ffmpeg mix.
 	const voiceOutputs: VoiceOutput[] = [];
 	let lastPosterFile: string | null = null;
+	let lastCardFile: string | null = null;
+	let lastOgFile: string | null = null;
 
 	// For non-primary voices, extract segments from the back-filled timeline
 	// so they get the corrected start times.
@@ -415,15 +417,19 @@ async function run(): Promise<void> {
 		console.log(`  ✓ ${result.gifFile}`);
 		if (result.mkvFile) console.log(`  ✓ ${result.mkvFile}`);
 		if (result.posterFile) console.log(`  ✓ ${result.posterFile}`);
+		if (result.cardFile) console.log(`  ✓ ${result.cardFile}`);
+		if (result.ogFile) console.log(`  ✓ ${result.ogFile}`);
 		lastPosterFile = result.posterFile;
+		lastCardFile = result.cardFile;
+		lastOgFile = result.ogFile;
 
 		// Collect voice output for manifest generation.
 		if (webEnabled) {
 			voiceOutputs.push({
-				voice,
 				mp4File: result.mp4File,
-				vttFile: captions.vttFile,
 				srtFile: captions.srtFile,
+				voice,
+				vttFile: captions.vttFile,
 			});
 		}
 	}
@@ -431,7 +437,7 @@ async function run(): Promise<void> {
 	// Web output — generate manifest
 	if (webEnabled && voiceOutputs.length > 0) {
 		console.log('  Generating manifest…');
-		const manifestFile = generateManifest(parsed, outputDir, lastPosterFile, voiceOutputs);
+		const manifestFile = generateManifest(parsed, outputDir, lastPosterFile, lastCardFile, lastOgFile, voiceOutputs);
 		console.log(`  ✓ ${manifestFile}`);
 	}
 

@@ -109,10 +109,7 @@ export const CAPTION_MARGIN_V = 10;
  * Passed to VHS as `Set Theme <json>`.
  */
 export const TERMINAL_THEME = JSON.stringify({
-	name: 'Amber',
 	background: '#1A0F00',
-	foreground: '#FF9900',
-	cursor: '#FF9900',
 	// ANSI 0–7 (normal)
 	color0: '#1A0F00',
 	color1: '#CC5500',
@@ -130,7 +127,10 @@ export const TERMINAL_THEME = JSON.stringify({
 	color12: '#FFC84D',
 	color13: '#FF8800',
 	color14: '#FFD080',
-	color15: '#FFF0CC'
+	color15: '#FFF0CC',
+	cursor: '#FF9900',
+	foreground: '#FF9900',
+	name: 'Amber'
 });
 
 /**

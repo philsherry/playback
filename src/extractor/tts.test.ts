@@ -19,13 +19,13 @@ const mockTape: ParsedTape = {
 	posterFile: null,
 	tape: {
 		output: 'test/output',
-		title: 'Test Tape',
 		steps: [
 			{ action: 'type', command: 'ls', narration: 'List the files.' },
 			{ action: 'run', narration: 'The command runs.' },
 			{ action: 'comment' }, // no narration — should not produce a segment
 			{ action: 'type', command: 'pwd' }, // no narration
 		],
+		title: 'Test Tape',
 	},
 };
 

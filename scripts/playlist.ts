@@ -14,6 +14,8 @@
  * Usage:
  *   npm run playlist:build
  *   npm run playlist:build -- --vhs-only
+ *   npm run playlist:build -- --tapes-dir /path/to/tapes
+ *   npm run playlist:build -- --tapes-dir /path/to/tapes --web
  */
 
 import { readdirSync, existsSync, statSync } from 'node:fs';
@@ -25,12 +27,26 @@ import { loadConfig } from '../src/config';
 const __filename = fileURLToPath(import.meta.url);
 const root = resolve(__filename, '..', '..');
 const config = await loadConfig();
-const tapesDir = resolve(root, config.tapesDir);
 const cliPath = join(root, 'src', 'cli.ts');
 
-// Extra flags to forward to each `playback tape` invocation
-// (e.g. --vhs-only, --captions-only)
-const forwardedFlags = process.argv.slice(2);
+// Parse --tapes-dir <path> from argv, then forward the rest to each tape invocation.
+const rawArgs = process.argv.slice(2);
+const tapesDirIdx = rawArgs.indexOf('--tapes-dir');
+let tapesDir: string;
+let forwardedFlags: string[];
+
+if (tapesDirIdx !== -1) {
+	const tapesDirArg = rawArgs[tapesDirIdx + 1];
+	if (!tapesDirArg || tapesDirArg.startsWith('--')) {
+		console.error('Error: --tapes-dir requires a path argument.');
+		process.exit(1);
+	}
+	tapesDir = resolve(tapesDirArg);
+	forwardedFlags = rawArgs.filter((_, i) => i !== tapesDirIdx && i !== tapesDirIdx + 1);
+} else {
+	tapesDir = resolve(root, config.tapesDir);
+	forwardedFlags = rawArgs;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

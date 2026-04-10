@@ -26,13 +26,13 @@ describe('MetaSchema', () => {
 
 		it('accepts all optional fields', () => {
 			const result = v.safeParse(MetaSchema, {
-				title: 'My Episode',
 				description: 'A description.',
+				episode: 1,
 				locale: 'en-GB',
 				poster: 3,
-				episode: 1,
 				series: 's1-getting-started',
 				tags: ['accessibility', 'components'],
+				title: 'My Episode',
 				version: '1.2.0',
 				voices: ['northern_english_male'],
 			});
@@ -72,24 +72,24 @@ describe('MetaSchema', () => {
 
 		it('rejects poster: 0', () => {
 			const result = v.safeParse(MetaSchema, {
-				title: 'My Episode',
 				poster: 0,
+				title: 'My Episode',
 			});
 			expect(result.success).toBe(false);
 		});
 
 		it('rejects a non-integer poster value', () => {
 			const result = v.safeParse(MetaSchema, {
-				title: 'My Episode',
 				poster: 1.5,
+				title: 'My Episode',
 			});
 			expect(result.success).toBe(false);
 		});
 
 		it('rejects episode: 0', () => {
 			const result = v.safeParse(MetaSchema, {
-				title: 'My Episode',
 				episode: 0,
+				title: 'My Episode',
 			});
 			expect(result.success).toBe(false);
 		});

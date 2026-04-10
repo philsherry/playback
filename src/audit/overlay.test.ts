@@ -14,7 +14,7 @@ function makeParsed(steps: Step[]): ParsedTape {
 		dir: '/test',
 		meta: { title: 'Test', voices: ['test_voice'] },
 		posterFile: null,
-		tape: { output: 'test', title: 'Test Tape', steps },
+		tape: { output: 'test', steps, title: 'Test Tape' },
 	};
 }
 
