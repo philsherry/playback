@@ -1,6 +1,6 @@
 ---
 title: "Install and explore"
-output: studio/example-skills
+output: studio/example/skills
 steps:
   # Clone the repo into a clean working directory.
   - action: type

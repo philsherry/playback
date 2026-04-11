@@ -108,7 +108,7 @@ Optional object in `meta.yaml` that overrides default VHS recording constants fo
 
 **Poster image priority:** `poster.png` in the tape directory → `poster` frame number in `meta.yaml` → no poster.
 
-**Voices:** `northern_english_male` by default. `voices.yaml` at the project root defines the available voices: `alan`, `alba`, `northern_english_male`, `southern_english_female`.
+**Voices:** `northern_english_male` by default. The available voices come from the merged catalogue: `$XDG_CONFIG_HOME/playback/voices.yaml` as the user-level base, with an optional project-local `voices.yaml` (gitignored) on top. Default voices: `alan`, `alba`, `northern_english_male`, `southern_english_female`.
 
 ## PROMPT.md format
 
@@ -134,17 +134,18 @@ Body sections: "What this video shows", "What you will see" (numbered steps), "W
 
 ## Pipeline output
 
-Running `npm run playback:tape -- studio/example` produces:
+Running `npm run playback:tape -- studio/example/tape` produces:
 
 ```text
-blockbuster/studio/example/
-├── example.tape          # generated VHS tape
-├── example.mp4           # final video with voiceover
-├── example.gif           # GIF version for READMEs and docs
-├── example.vtt           # WebVTT captions (primary)
-├── example.srt           # SRT captions (fallback)
-├── example.ass           # ASS captions (used internally for burn-in)
-├── example.png           # poster image (if generated)
+blockbuster/studio/example/tape/
+├── tape.tape             # generated VHS tape
+├── tape.mp4              # final video with voiceover
+├── tape.gif              # GIF version for READMEs and docs
+├── tape.vtt              # WebVTT captions (primary)
+├── tape.srt              # SRT captions (fallback)
+├── tape.ass              # ASS captions (used internally for burn-in)
+├── tape.png              # poster image (if generated, 1280×720)
+├── tape.card.png         # card image (if generated, 640×360 — 50% of poster)
 ├── chapters.txt          # FFMETADATA1 chapter markers
 ├── script.txt            # narration script (for reference)
 └── segments/             # per-voice synthesised audio segments

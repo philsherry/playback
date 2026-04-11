@@ -3,7 +3,7 @@
 # The build-studio.sh script copies this to tape.yaml before recording,
 # so the demo always starts with timing issues that need fixing.
 title: Exploring a project structure
-output: studio/example
+output: studio/example/tape
 steps:
   - action: type
     command: mkdir -p src tests docs && touch README.md config.yaml

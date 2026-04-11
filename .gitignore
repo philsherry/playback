@@ -9,9 +9,9 @@ tui/playback-tui
 blockbuster/
 studio/build/
 studio/dist/
-studio/example/tape.yaml
-studio/demo-tui/*.gif
-studio/demo-tui/*.mp4
+studio/example/tape/tape.yaml
+studio/demo/tui/*.gif
+studio/demo/tui/*.mp4
 
 # Workspace — local config and external content for recording
 # Copy workspace.example.yaml to workspace.yaml and adjust paths.
@@ -23,6 +23,10 @@ node_modules/
 
 # Voice models — large binary files, download via npm run setup
 voices/
+
+# Project-level voice catalogue override — gitignored; XDG catalogue is the base.
+# Copy voices.example.yaml and adjust, or let npm run setup bootstrap the XDG one.
+voices.yaml
 
 # Vale styles — populated by vale sync
 .vale/
@@ -41,6 +45,7 @@ voices/
 !.vscode/settings.json
 !.vscode/tasks.json
 .agents/memory/
+.claude/memory/
 .github/memory/
 
 # Editor

@@ -116,3 +116,37 @@ export async function loadConfig(): Promise<ResolvedConfig> {
 
 	return { ...CONFIG_DEFAULTS };
 }
+
+/**
+ * Loads the raw project-level config without applying defaults.
+ *
+ * Use this when you need to know whether the user *explicitly* configured a
+ * field — for example, to implement a multi-level fallback chain where the
+ * XDG user config sits between the project config and the built-in defaults.
+ *
+ * Returns `null` when no `playback.config.{js,mjs,ts}` file is found.
+ * @returns Raw {@link PlaybackConfig} from disk, or `null` if absent.
+ */
+export async function loadRawProjectConfig(): Promise<PlaybackConfig | null> {
+	const cwd = process.cwd();
+	const candidates = [
+		resolve(cwd, 'playback.config.js'),
+		resolve(cwd, 'playback.config.mjs'),
+		resolve(cwd, 'playback.config.ts')
+	];
+
+	for (const candidate of candidates) {
+		try {
+			const mod = (await import(candidate)) as
+				| { default?: PlaybackConfig }
+				| PlaybackConfig;
+			return 'default' in mod && mod.default != null
+				? mod.default
+				: (mod as PlaybackConfig);
+		} catch {
+			// Not found or not loadable in this runtime — try next candidate.
+		}
+	}
+
+	return null;
+}

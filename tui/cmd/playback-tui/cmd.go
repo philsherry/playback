@@ -67,11 +67,18 @@ Use --accessible for a sequential interactive mode with no alt screen.`,
 			return nil
 		}
 
-		// Interactive TUI mode. Select theme based on flags.
-		model := ui.NewModel(data, projectRoot)
+		// Interactive TUI mode. Resolve theme: --high-contrast always wins;
+		// otherwise use the XDG config theme (if set and recognised); fall
+		// back to the default Tokyo Night Storm.
+		theme := ui.TokyoNightStorm
 		if highContrastFlag {
-			model = ui.NewModelWithTheme(data, projectRoot, ui.HighContrast)
+			theme = ui.HighContrast
+		} else if cfg := tape.LoadXdgConfig(); cfg != nil && cfg.Theme != "" {
+			if t, ok := ui.ThemeForName(cfg.Theme); ok {
+				theme = t
+			}
 		}
+		model := ui.NewModelWithTheme(data, projectRoot, theme)
 		p := tea.NewProgram(model, tea.WithAltScreen())
 
 		if _, err := p.Run(); err != nil {

@@ -20,7 +20,7 @@ Setup installs external tools, downloads voice models, and builds everything aut
 Check that the example tape parses correctly before running anything:
 
 ```sh
-npm run validate -- studio/example
+npm run validate -- studio/example/tape
 ```
 
 You should see `✓ Valid`.
@@ -30,10 +30,10 @@ You should see `✓ Valid`.
 Generate a narrated, captioned video from the demo tape:
 
 ```sh
-npm run playback:tape -- studio/example
+npm run playback:tape -- studio/example/tape
 ```
 
-Output lands in `blockbuster/studio/example/` — you'll get an `.mp4`, a `.gif`, caption files (`.vtt`, `.srt`, `.ass`), and a narration script.
+Output lands in `blockbuster/studio/example/tape/` — you'll get an `.mp4`, a `.gif`, caption files (`.vtt`, `.srt`, `.ass`), and a narration script.
 
 ## Step 4: Try the TUI editor
 
@@ -74,8 +74,8 @@ npx -y degit philsherry/govuk-design-system-skills workspace/govuk-design-system
 Then validate and run:
 
 ```sh
-npm run validate -- studio/example-skills
-npm run playback:tape -- studio/example-skills
+npm run validate -- studio/example/skills
+npm run playback:tape -- studio/example/skills
 ```
 
 ## Step 6: Build the demo video (optional)
@@ -90,46 +90,49 @@ This produces a narrated screen recording of the TUI fixing timing issues. Outpu
 
 ```text
 studio/
-  example/               the tape the TUI opens (has intentional overlaps)
-    tape.yaml            active copy — edited by the TUI, reset before each build
-    tape.pristine.yaml   clean backup with overlaps intact
-    meta.yaml            episode metadata
-    PROMPT.md            human-readable description
+  example/
+    tape/              the tape the TUI opens (has intentional overlaps)
+      tape.yaml            active copy — edited by the TUI, reset before each build
+      tape.pristine.yaml   clean backup with overlaps intact
+      meta.yaml            episode metadata
+      PROMPT.md            human-readable description
 
-  demo-tui/              narration and recording script for the demo video
-    tape.yaml            narration text and timing for the voiceover
-    demo-tui.tape        VHS script that drives the TUI via keystrokes
-    meta.yaml            episode metadata
-    PROMPT.md            human-readable description
+    skills/            example tape using workspace features (requires clone)
+      tape.yaml            uses {{GDS_SKILLS_*}} placeholders from workspace.yaml
+      meta.yaml            episode metadata
+      PROMPT.md            human-readable description with clone instructions
 
-  demo-accessible/       the accessible timing editor in action
-    tape.yaml            sequential prompts, nudge, undo, quit
-    meta.yaml            episode metadata
-    PROMPT.md            human-readable description
+  demo/
+    tui/               narration and recording script for the demo video
+      tape.yaml            narration text and timing for the voiceover
+      tui.tape             VHS script that drives the TUI via keystrokes
+      meta.yaml            episode metadata
+      PROMPT.md            human-readable description
 
-  example-skills/        example tape using workspace features (requires clone)
-    tape.yaml            uses {{GDS_SKILLS_*}} placeholders from workspace.yaml
-    meta.yaml            episode metadata
-    PROMPT.md            human-readable description with clone instructions
+    accessible/        the accessible timing editor in action
+      tape.yaml            sequential prompts, nudge, undo, quit
+      meta.yaml            episode metadata
+      PROMPT.md            human-readable description
 
-  build-studio.sh        orchestrates the full studio build
-  assets/                screenshots and images for this README
-  build/                 intermediate build artefacts (git-ignored)
-  dist/                  final output (git-ignored)
-    demo-tui/            TUI demo video, captions, poster, manifest
-    demo-accessible/     accessible mode demo video, captions, poster, manifest
+  build-studio.sh      orchestrates the full studio build
+  assets/              screenshots and images for this README
+  build/               intermediate build artefacts (git-ignored)
+  dist/                final output (git-ignored)
+    demo/
+      tui/             TUI demo video, captions, poster, manifest
+      accessible/      accessible mode demo video, captions, poster, manifest
 ```
 
 ## How the build works
 
 The `build-studio.sh` script orchestrates the full build:
 
-1. **Reset** — restores `tape.pristine.yaml` over `tape.yaml` in `example/` so the tape starts with timing overlaps.
-2. **Build demo-tui** — runs the full pipeline (`tsx src/cli.ts tape studio/demo-tui --web`). The pipeline synthesises audio, back-fills timing, records VHS from the project root (via `vhsCwd: "."` in meta.yaml), generates captions, and stitches the final video with poster.
-3. **Build demo-accessible** — same pipeline, same process.
+1. **Reset** — restores `tape.pristine.yaml` over `tape.yaml` in `example/tape/` so the tape starts with timing overlaps.
+2. **Build demo/tui** — runs the full pipeline (`tsx src/cli.ts tape studio/demo/tui --web`). The pipeline synthesises audio, back-fills timing, records VHS from the project root (via `vhsCwd: "."` in meta.yaml), generates captions, and stitches the final video with poster.
+3. **Build demo/accessible** — same pipeline, same process.
 4. **Copy to dist** — copies web-ready output (`.mp4`, `.gif`, `.png`, `.vtt`, `.srt`, `.manifest.json`) to `studio/dist/`.
 
-Both demos pass `--web` to produce a `manifest.json` for the web front-end. Output lands in `studio/dist/demo-tui/` and `studio/dist/demo-accessible/`.
+Both demos pass `--web` to produce a `manifest.json` for the web front-end. Output lands in `studio/dist/demo/tui/` and `studio/dist/demo/accessible/`.
 
 ## Accessible alternatives
 
@@ -137,10 +140,10 @@ Not everyone can use the full-screen TUI. Two alternatives work with the same de
 
 ```sh
 # Screen-reader-friendly: sequential prompts, no alt screen
-npm run playback:edit:accessible -- studio/example
+npm run playback:edit:accessible -- studio/example/tape
 
 # Plain-text timing report: pipe-friendly, no interaction
-npm run playback:edit:report -- studio/example
+npm run playback:edit:report -- studio/example/tape
 ```
 
 ## Troubleshooting

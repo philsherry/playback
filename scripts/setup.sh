@@ -90,16 +90,71 @@ fi
 
 header "Voice models"
 
+# ── XDG catalogue bootstrap ───────────────────────────────────────────────────
+# The voice catalogue lives at $XDG_CONFIG_HOME/playback/voices.yaml so it is
+# shared across every project that uses playback. On first run we copy the
+# reference template (voices.example.yaml) there. Users can then edit that
+# file to add or customise voices.
+
+XDG_CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/playback"
+XDG_CONFIG_YAML="${XDG_CONFIG_DIR}/config.yaml"
+XDG_VOICES_YAML="${XDG_CONFIG_DIR}/voices.yaml"
+EXAMPLE_VOICES_YAML="$(dirname "$0")/../voices.example.yaml"
+
+mkdir -p "${XDG_CONFIG_DIR}"
+
+# ── XDG config bootstrap ──────────────────────────────────────────────────────
+if [[ ! -f "${XDG_CONFIG_YAML}" ]]; then
+  cat > "${XDG_CONFIG_YAML}" <<'EOF'
+## playback user config — edit to taste.
+## Full reference: https://github.com/philsherry/playback
+
+## Log level. Options: silent | error | warn | info | verbose
+## CLI flags --quiet (warn) and --verbose override this.
+logLevel: info
+
+## Colour theme for CLI output. Options:
+##   default              — consola defaults
+##   tokyo-night          — Tokyo Night (dark)
+##   tokyo-night-storm    — Tokyo Night Storm (darker) — TUI default
+##   tokyo-night-moon     — Tokyo Night Moon (darkest)
+##   tokyo-night-day      — Tokyo Night Day (light)
+##   catppuccin-mocha     — Catppuccin Mocha (dark)
+##   catppuccin-macchiato — Catppuccin Macchiato (medium dark)
+##   catppuccin-frappe    — Catppuccin Frappé (medium)
+##   catppuccin-latte     — Catppuccin Latte (light)
+##   dracula              — Dracula (purple-tinted dark)
+##   high-contrast        — WCAG AAA, matches TUI accessible mode
+theme: tokyo-night-storm
+
+## User-level default voices. Overridden by per-project playback.config.ts.
+## Available voices are defined in voices.yaml (same directory as this file).
+voices:
+  - northern_english_male
+EOF
+  info "Config bootstrapped → ${XDG_CONFIG_YAML}"
+else
+  info "Config: ${XDG_CONFIG_YAML}"
+fi
+
+# ── XDG voices bootstrap ──────────────────────────────────────────────────────
+if [[ ! -f "${XDG_VOICES_YAML}" ]]; then
+  cp "${EXAMPLE_VOICES_YAML}" "${XDG_VOICES_YAML}"
+  info "Voice catalogue bootstrapped → ${XDG_VOICES_YAML}"
+else
+  info "Voice catalogue: ${XDG_VOICES_YAML}"
+fi
+
+# ── Model download directory ──────────────────────────────────────────────────
 # Download to the XDG shared cache so models are reused across projects.
 # Use --local flag to download to the project-local voices/ directory instead.
-VOICES_YAML="$(dirname "$0")/../voices.yaml"
 if [[ " $* " == *" --local "* ]]; then
   VOICES_DIR="$(dirname "$0")/../voices"
 else
-  VOICES_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/playback/voices"
+  VOICES_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/playback/voices"
 fi
 mkdir -p "${VOICES_DIR}"
-info "Voice cache: ${VOICES_DIR}"
+info "Voice model cache: ${VOICES_DIR}"
 
 download_voice() {
   local name="$1"
@@ -125,8 +180,8 @@ download_voice() {
   fi
 }
 
-# Read voices from voices.yaml (the single source of truth).
-info "Reading voice catalogue from voices.yaml…"
+# Read voices from the XDG catalogue (bootstrapped above).
+info "Reading voice catalogue…"
 while IFS= read -r line; do
   if [[ "${line}" =~ ^[[:space:]]+model:[[:space:]]+(.+)$ ]]; then
     current_model="${BASH_REMATCH[1]}"
@@ -139,7 +194,7 @@ while IFS= read -r line; do
       current_url=""
     fi
   fi
-done < "${VOICES_YAML}"
+done < "${XDG_VOICES_YAML}"
 
 # ── Vale styles ──────────────────────────────────────────────────────────────
 

@@ -6,8 +6,8 @@ import (
 )
 
 // InferTapesDir walks up from a tape directory to find the root directory
-// that contains all tapes. A tape can sit one level deep (studio/example/)
-// or two levels deep (tapes/s1-getting-started/01-install/). The function
+// that contains all tapes. A tape can sit one level deep (studio/tape/)
+// or two levels deep (studio/example/tape/). The function
 // checks whether the parent is one of several series directories grouped
 // under a common grandparent. If so, the grandparent is the tapes root.
 // Otherwise the parent is returned.

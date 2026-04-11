@@ -2,9 +2,17 @@
 /**
  * notes-from-changelog.cjs — Extract a changelog section for release publishing.
  *
- * Intentionally kept as plain CommonJS because this is a CI/CD and release-path
- * script. Release automation should be able to invoke it with `node` directly,
- * without requiring `tsx` during CI or tagging.
+ * Reads `CHANGELOG.md` and prints the body of the `## [<version>]` section to
+ * stdout. Used by release automation to populate GitHub release notes from the
+ * changelog without manual copy-paste.
+ *
+ * Usage: `npm run release:notes -- <version>`
+ *
+ * Exits 0 with the section body on success, 1 if the version is missing or its
+ * section is empty.
+ *
+ * Kept as plain CommonJS so it runs with `node` alone in CI and local tagging
+ * workflows, without requiring `tsx` or the TypeScript toolchain.
  */
 
 const fs = require('node:fs');

@@ -10,11 +10,11 @@
  *   tsx scripts/debug/overlay.ts [tape-dir]
  *
  * Examples:
- *   tsx scripts/debug/overlay.ts studio/demo-tui
- *   DRAWTEXT=$(tsx scripts/debug/overlay.ts studio/demo-tui)
- *   DRAWTEXT=$(npm exec -- tsx scripts/debug/overlay.ts studio/demo-tui)
+ *   tsx scripts/debug/overlay.ts studio/demo/tui
+ *   DRAWTEXT=$(tsx scripts/debug/overlay.ts studio/demo/tui)
+ *   DRAWTEXT=$(npm exec -- tsx scripts/debug/overlay.ts studio/demo/tui)
  *
- * Defaults to studio/demo-tui when no argument is given.
+ * Defaults to studio/demo/tui when no argument is given.
  *
  * This script stays in TypeScript because it is user-run tooling, not a CI/CD
  * entrypoint. Run it via an npm script or `npm exec -- tsx ...` if `tsx` is
@@ -34,7 +34,7 @@ const __filename = fileURLToPath(import.meta.url);
 const root = resolve(__filename, '..', '..', '..');
 
 const positional = process.argv[2];
-const tapeDir = resolve(root, positional ?? 'studio/demo-tui');
+const tapeDir = resolve(root, positional ?? 'studio/demo/tui');
 
 const parsed = parseTape(tapeDir);
 const timeline = buildTimeline(parsed);

@@ -2,10 +2,16 @@
 /**
  * check.cjs — Release metadata guard.
  *
- * Intentionally kept as plain CommonJS because this is a CI/CD and release-path
- * script. It should run with `node` alone in automation and local tagging
- * workflows, without depending on `tsx` or the project's TypeScript toolchain
- * being available first.
+ * Validates that all release metadata is consistent before tagging:
+ * - `package.json` and `package-lock.json` versions match
+ * - `CHANGELOG.md` has a heading for the current version with an ISO date and body
+ * - `RELEASE_NOTES.md` title matches `# Release notes — v<version>`
+ * - No local git tag for the current version already exists
+ *
+ * Exits 0 on success, 1 with a list of failures otherwise.
+ *
+ * Kept as plain CommonJS so it runs with `node` alone in CI and local tagging
+ * workflows, without requiring `tsx` or the TypeScript toolchain.
  */
 
 const fs = require('node:fs');

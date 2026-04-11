@@ -1,0 +1,151 @@
+---
+title: "What's new in playback 1.1.0"
+output: studio/demo/release
+steps:
+  # Brief pause for the shell prompt to settle.
+  - action: comment
+    pause: 0.5
+
+  # Intro — set the stage.
+  - action: narrate
+    narration: >
+      Playback 1.1.0 ships three connected features: structured logging,
+      configurable themes, and an XDG config that works across all your projects.
+    commands:
+      - node scripts/release/release-notes.cjs
+    pause: 1
+
+  # ── Section 1: Structured logging ────────────────────────────────────────
+
+  - action: narrate
+    narration: >
+      Every pipeline stage now logs through consola, with three
+      verbosity levels.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs 1
+    pause: 1
+
+  # Default: info level.
+  - action: type
+    command: playback validate studio/example/tape
+    pause: 0.5
+
+  - action: run
+    narration: >
+      The default level shows progress and completion: the title,
+      validation step, and a success line. Everything you need to
+      track a build at a glance.
+    pause: 0.5
+
+  # Quiet: warn+ only — silent on success.
+  - action: type
+    command: playback validate studio/example/tape --quiet
+    pause: 0.5
+
+  - action: run
+    narration: >
+      With --quiet, a successful run is completely silent. Only
+      warnings and errors appear. Clean output for scripts and
+      CI pipelines.
+    pause: 0.5
+
+  # Verbose: info + extra detail.
+  - action: type
+    command: playback validate studio/example/tape --verbose
+    pause: 0.5
+
+  - action: run
+    narration: >
+      And --verbose adds detail: step count, configured voices, and
+      the resolved output path. Useful when checking that a tape
+      is wired up correctly before committing to a full build.
+    pause: 0
+
+  # ── Section 2: CLI theming ────────────────────────────────────────────────
+
+  - action: narrate
+    narration: >
+      The CLI output now uses colour themes — and so does the TUI.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs 2
+    pause: 1
+
+  # Launch the TUI with catppuccin-mocha active in ~/.config/playback/config.yaml.
+  - action: type
+    command: ./tui/playback-tui studio/example/tape
+    pause: 1
+
+  # Narrate while the TUI is on screen.
+  - action: run
+    narration: >
+      Eleven themes ship out of the box: all four Tokyo Night variants,
+      all four Catppuccin flavours, Dracula, and a high-contrast
+      WCAG-AAA option. Set the theme field in your XDG config, or drop
+      a theme.yaml into any project directory to override it per
+      project.
+    pause: 2
+
+  # Quit the TUI and continue.
+  - action: key
+    command: q
+    pause: 1
+
+  # ── Section 3: XDG config ─────────────────────────────────────────────────
+
+  - action: narrate
+    narration: >
+      A single XDG config file applies to all your projects — and the TUI
+      reads it to pick its colour theme.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs 3
+    pause: 2
+
+  # ── Section 4: XDG voices catalogue ──────────────────────────────────────
+
+  - action: narrate
+    narration: >
+      The voice catalogue has also moved to XDG.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs 4
+    pause: 1
+
+  # Show the user-level XDG catalogue.
+  - action: type
+    command: cat ~/.config/playback/voices.yaml
+    pause: 1
+
+  - action: run
+    narration: >
+      npm run setup installs the catalogue to your XDG config directory.
+      All your playback projects share the same base catalogue and model
+      cache — no need to re-download voice models for each project.
+    pause: 1
+
+  # Show the project-level override.
+  - action: comment
+    narration: >
+      A project-level voices.yaml can add or override entries. Project
+      voices win on name collision.
+    pause: 1
+
+  - action: type
+    command: cat voices.yaml
+    pause: 1
+
+  - action: run
+    narration: >
+      Run npm run setup once per project to download any new model files
+      referenced in the project catalogue.
+    pause: 1
+
+  # ── Outro ─────────────────────────────────────────────────────────────────
+
+  - action: comment
+    narration: >-
+      That's playback 1.1.0 — structured logs, configurable themes, and
+      XDG-managed voices.
+    pause: 1

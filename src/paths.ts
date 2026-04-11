@@ -26,6 +26,17 @@ export function xdgCacheDir(): string {
 }
 
 /**
+ * Returns the playback-specific XDG config directory.
+ *
+ * Reads `$XDG_CONFIG_HOME` if set, otherwise falls back to `~/.config`.
+ * @returns Absolute path to `$XDG_CONFIG_HOME/playback`.
+ */
+export function xdgConfigDir(): string {
+	const base = process.env['XDG_CONFIG_HOME'] || join(homedir(), '.config');
+	return join(base, 'playback');
+}
+
+/**
  * Returns the shared voice model cache directory.
  * @returns Absolute path to `$XDG_CACHE_HOME/playback/voices`.
  */

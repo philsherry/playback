@@ -4,6 +4,27 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-04-11
+
+### Added
+
+- **Structured logging** — `consola`-backed logger with `--quiet` (warn and above) and `--verbose` (all levels plus full subprocess output) flags. ffmpeg stderr is now captured and filtered in default and quiet modes, surfacing only actionable warnings; `--verbose` passes all output through unfiltered
+- **CLI theming** — 11 built-in colour themes: `default`, four Tokyo Night variants (`tokyo-night`, `tokyo-night-storm`, `tokyo-night-moon`, `tokyo-night-day`), four Catppuccin flavours (`catppuccin-mocha`, `catppuccin-macchiato`, `catppuccin-frappe`, `catppuccin-latte`), `dracula`, and `high-contrast`; set via `theme` in XDG config or overlaid per-project with `theme.yaml`
+- **XDG user config** — `$XDG_CONFIG_HOME/playback/config.yaml` (falls back to `~/.config/playback/config.yaml`); configures `theme`, `logLevel`, and default `voices` across all projects
+- **TUI XDG config** — TUI reads the same `config.yaml` to select its colour theme; 9 new TUI themes matching the CLI set (all Tokyo Night variants, all Catppuccin variants, Dracula); `--high-contrast` flag still overrides
+- **XDG voices catalogue** — `$XDG_CONFIG_HOME/playback/voices.yaml` as the user-level base, merged with an optional per-project `voices.yaml` on top (project entries win on name collision); `npm run setup` bootstraps the XDG catalogue from `voices.example.yaml` on first run and downloads models from it thereafter
+
+### Changed
+
+- `voices.yaml` is now gitignored at the project level; `voices.example.yaml` is the committed reference that `npm run setup` bootstraps from
+- `release:prepare` now runs `lint` and a smoke test (`test:smoke`) before the release metadata check
+
+### Fixed
+
+- `Duped color` and `255(+1) colors` GIF palette warnings removed from the surfaced warning list; they are benign palette quantization artefacts that vary by theme and cannot be reliably prevented without degrading quality
+- Studio directory structure uses nested paths for cleaner paths: `demo-tui/` → `demo/tui/`, `demo-accessible/` → `demo/accessible/`, `example/` → `example/tape/`, `example-skills/` → `example/skills/`
+- `demo/tui` `meta.yaml` series field corrected from `demo-tui` to `demo` (matches the other demo tapes)
+
 ## [1.0.6] - 2026-04-10
 
 ### Added
@@ -19,6 +40,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `image2` image sequence pattern warning on `.card.png`: added `-frames:v 1 -update 1` to `generateCard` (matching the flags already used by `extractPoster`)
 - `Guessed Channel Layout: mono` warning on each WAV input: added `-channel_layout mono` per-input so ffmpeg does not need to infer it
 - GIF palette `Duped color` and `255(+1)` warnings: added `reserve_transparent=0` and `stats_mode=diff` to `palettegen`, and `dither=bayer:bayer_scale=5:diff_mode=rectangle` to `paletteuse`; also corrected the palette filtergraph to use `;` between its parallel chains
+
 
 ## [1.0.5] - 2026-04-09
 
@@ -90,6 +112,8 @@ post-production timing adjustments, and a full set of studio example tapes.
 - **Timing tools** — `--audit` prints a timing comparison table after synthesis, `--audit-fix` writes corrected pauses to `tape.yaml`, `--debug-overlay` burns command labels into the video
 - **202 tests** — TypeScript (`vitest`) and Go across parser, schemas, generators, extractors, utilities, captions, workspace, metadata, timeline, and TUI
 
+[1.1.0]: https://github.com/philsherry/playback/compare/v1.0.6...v1.1.0
+[1.0.6]: https://github.com/philsherry/playback/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/philsherry/playback/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/philsherry/playback/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/philsherry/playback/compare/v1.0.2...v1.0.3

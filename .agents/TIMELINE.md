@@ -73,7 +73,7 @@ Walks narrated events in order. If a clip's audio end time bleeds into the next 
 
 ## Rounding invariant
 
-All timing uses `round2(n)` — `Math.round(n * 100) / 100` (two decimal places). This replaced an earlier `Math.ceil` approach that caused cumulative 9-second drift on the `demo-tui` tape. The invariant: `eventDuration()` in timeline and `stepDuration()` in constants must use the same rounding. If you change rounding in one, change it in both.
+All timing uses `round2(n)` — `Math.round(n * 100) / 100` (two decimal places). This replaced an earlier `Math.ceil` approach that caused cumulative 9-second drift on the `demo/tui` tape. The invariant: `eventDuration()` in timeline and `stepDuration()` in constants must use the same rounding. If you change rounding in one, change it in both.
 
 ## `fixedTiming` override
 

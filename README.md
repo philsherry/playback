@@ -18,11 +18,14 @@ Each video lives in its own directory with a `tape.yaml` and optional `meta.yaml
 
 ```text
 studio/
-  example/             # standalone example tape (try the TUI with this)
-    tape.yaml          # pipeline — steps, narration, timing
-    meta.yaml          # metadata — title, description, version, locale, poster
-  demo-tui/            # self-referential demo video of the TUI
-  demo-accessible/     # accessible mode demo
+  example/
+    tape/              # standalone example tape (try the TUI with this)
+      tape.yaml        # pipeline — steps, narration, timing
+      meta.yaml        # metadata — title, description, version, locale, poster
+    skills/            # workspace-backed example tape
+  demo/
+    tui/               # self-referential demo video of the TUI
+    accessible/        # accessible mode demo
   build-studio.sh      # builds the demo videos
 ```
 
@@ -103,22 +106,23 @@ voices:
 
 ### Output
 
-Running `npm run playback:tape -- studio/example` produces:
+Running `npm run playback:tape -- studio/example/tape` produces:
 
 ```text
 blockbuster/
   studio/
     example/
-      example.tape     # generated VHS tape
-      example.mp4      # final video with voiceover
-      example.gif      # GIF version for READMEs and docs
-      example.vtt      # WebVTT captions (primary)
-      example.srt      # SRT captions (fallback)
-      example.ass      # ASS captions (used internally for burn-in)
-      example.png      # poster image (if generated)
-      chapters.txt     # FFMETADATA1 chapter markers (for benchmarking)
-      script.txt       # narration script (for reference)
-      segments/        # per-voice synthesised audio segments
+      tape/
+        tape.tape        # generated VHS tape
+        tape.mp4         # final video with voiceover
+        tape.gif         # GIF version for READMEs and docs
+        tape.vtt         # WebVTT captions (primary)
+        tape.srt         # SRT captions (fallback)
+        tape.ass         # ASS captions (used internally for burn-in)
+        tape.png         # poster image (if generated)
+        chapters.txt     # FFMETADATA1 chapter markers (for benchmarking)
+        script.txt       # narration script (for reference)
+        segments/        # per-voice synthesised audio segments
 ```
 
 ## Stack
@@ -218,14 +222,14 @@ This opens a tape with intentional narration overlaps. Press <kbd>j</kbd>/<kbd>k
 ### 3. Run the pipeline
 
 ```sh
-npm run playback:tape -- studio/example
+npm run playback:tape -- studio/example/tape
 ```
 
-This generates a `VHS` recording, synthesises voiceover, creates captions, and stitches the final `.mp4` and `.gif` into `blockbuster/studio/example/`.
+This generates a `VHS` recording, synthesises voiceover, creates captions, and stitches the final `.mp4` and `.gif` into `blockbuster/studio/example/tape/`.
 
 ### 4. Set up workspace sources
 
-Skip this for standalone tapes like `studio/example`. Do this before building
+Skip this for standalone tapes like `studio/example/tape`. Do this before building
 any tape that uses `{{PLACEHOLDER}}` values:
 
 ```sh
@@ -241,28 +245,28 @@ When working on playback itself, use the `npm run` form:
 
 ```sh
 # Validate a tape without recording
-npm run validate -- studio/example
+npm run validate -- studio/example/tape
 
 # Build all tapes in the configured tapesDir
 npm run playlist:build
 
 # Generate all outputs from a tape
-npm run playback:tape -- studio/example
+npm run playback:tape -- studio/example/tape
 
 # Generate VHS tape only (no audio/video stitching)
-npm run playback:tape -- studio/example --vhs-only
+npm run playback:tape -- studio/example/tape --vhs-only
 
 # Generate captions only
-npm run playback:tape -- studio/example --captions-only
+npm run playback:tape -- studio/example/tape --captions-only
 
 # Open the timing editor TUI
-npm run playback:edit -- studio/example
+npm run playback:edit -- studio/example/tape
 
 # Sequential interactive mode (screen reader-friendly, no alt screen)
-npm run playback:edit:accessible -- studio/example
+npm run playback:edit:accessible -- studio/example/tape
 
 # Plain-text timing report (pipe-friendly, no interaction)
-npm run playback:edit:report -- studio/example
+npm run playback:edit:report -- studio/example/tape
 ```
 
 In a consuming project, use the `playback` command directly:
@@ -293,14 +297,14 @@ Increase `AUDIO_BUFFER` if the final video feels rushed. The effective breathing
 Use `--audit` after a pipeline run to compare actual WAV durations against pause values, or `--audit-fix` to write corrections back to `tape.yaml`:
 
 ```sh
-npm run playback:tape -- studio/example --audit
-npm run playback:tape -- studio/example --audit-fix
+npm run playback:tape -- studio/example/tape --audit
+npm run playback:tape -- studio/example/tape --audit-fix
 ```
 
 Use `--debug-overlay` to burn command labels into the video for timing verification:
 
 ```sh
-npm run playback:tape -- studio/example --debug-overlay
+npm run playback:tape -- studio/example/tape --debug-overlay
 ```
 
 ### Timing editor
@@ -330,7 +334,7 @@ Then clone external repos into the `workspace/` directory:
 npx -y degit philsherry/govuk-design-system-skills workspace/govuk-design-system-skills
 ```
 
-Tapes that don’t use placeholders (like `studio/example/`) work without any workspace config. Tapes that reference `{{PLACEHOLDER}}` values need the corresponding source to be present first.
+Tapes that don’t use placeholders (like `studio/example/tape/`) work without any workspace config. Tapes that reference `{{PLACEHOLDER}}` values need the corresponding source to be present first.
 
 ## Accessibility
 
@@ -348,15 +352,15 @@ The [govuk-design-system-skills](https://github.com/philsherry/govuk-design-syst
 
 ### Built-in demos
 
-- [`studio/example/`](studio/example/) — standalone tape with no external dependencies; contains intentional timing overlaps for trying the TUI editor
-- [`studio/example-skills/`](studio/example-skills/) — tape with workspace features; uses `{{GDS_SKILLS_COMPONENTS_DIR}}` and `{{GDS_SKILLS_AGENTS_DIR}}` placeholders
-- [`studio/demo-tui/`](studio/demo-tui/) — self-referential demo of the TUI itself
-- [`studio/demo-accessible/`](studio/demo-accessible/) — demo of the accessible editing mode
+- [`studio/example/tape/`](studio/example/tape/) — standalone tape with no external dependencies; contains intentional timing overlaps for trying the TUI editor
+- [`studio/example/skills/`](studio/example/skills/) — tape with workspace features; uses `{{GDS_SKILLS_COMPONENTS_DIR}}` and `{{GDS_SKILLS_AGENTS_DIR}}` placeholders
+- [`studio/demo/tui/`](studio/demo/tui/) — self-referential demo of the TUI itself
+- [`studio/demo/accessible/`](studio/demo/accessible/) — demo of the accessible editing mode
 
 Try the example tape in the TUI editor:
 
 ```sh
-npm run playback:edit -- studio/example
+npm run playback:edit -- studio/example/tape
 ```
 
 ## Documentation

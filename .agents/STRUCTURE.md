@@ -26,7 +26,7 @@ src/
 ├── constants.ts           # Shared constants (timing, dimensions)
 ├── paths.ts               # Path resolution utilities
 ├── substitutions.ts       # {{CONSTANT}} placeholder expansion
-├── voices.ts              # Voice catalogue loader (reads voices.yaml)
+├── voices.ts              # Voice catalogue loader (XDG + project merge chain)
 ├── audit/
 │   ├── overlay.ts         # Debug overlay filter for ffmpeg burn-in
 │   └── timings.ts         # Timing audit — detects narration overlaps
@@ -90,9 +90,12 @@ tui/
 ```text
 studio/
 ├── build-studio.sh         # Builds all demo/example tapes
-├── example/                # Standalone example tape for testing
-├── demo-tui/               # Demo video of the TUI
-└── demo-accessible/        # Demo video of accessible mode
+├── demo/
+│   ├── tui/                # Demo video of the TUI
+│   └── accessible/         # Demo video of accessible mode
+└── example/
+    ├── tape/               # Standalone example tape for testing
+    └── skills/             # Example tape using workspace features
 ```
 
 Each tape directory contains `tape.yaml`, `meta.yaml`, and optionally `PROMPT.md` and `poster.png`.
@@ -102,7 +105,7 @@ Each tape directory contains `tape.yaml`, `meta.yaml`, and optionally `PROMPT.md
 | File | Purpose |
 | --- | --- |
 | `playback.config.ts` | Project-level config overrides (output dir, voices, nudge step) |
-| `voices.yaml` | Voice catalogue — single source of truth for available piper-tts voices (models cached in `$XDG_CACHE_HOME/playback/voices/`) |
+| `voices.example.yaml` | Reference template for the voice catalogue — `npm run setup` bootstraps `$XDG_CONFIG_HOME/playback/voices.yaml` from this on first run |
 | `workspace.example.yaml` | Template for `workspace.yaml` (local paths, mounts, constants) |
 | `tsconfig.json` | TypeScript compiler options (strict, ESNext, Bundler resolution) |
 | `tsup.config.ts` | Build config — ESM output targeting Node 22 |
@@ -114,6 +117,6 @@ Each tape directory contains `tape.yaml`, `meta.yaml`, and optionally `PROMPT.md
 
 - **Schema validation** uses Valibot throughout — tape, meta, workspace, and config schemas.
 - **Tests** live alongside source files as `*.test.ts` (TypeScript) and `*_test.go` (Go).
-- **Voices** use key names (e.g., `northern_english_male`) from `voices.yaml`. The pipeline caches `.onnx` model files in `$XDG_CACHE_HOME/playback/voices/` (falls back to `~/.cache/playback/voices/`). The runner checks a project-local `voicesDir` first, then the XDG cache — so per-project overrides still work.
+- **Voices** use key names (e.g., `northern_english_male`) from the merged catalogue: `$XDG_CONFIG_HOME/playback/voices.yaml` as base, project-local `voices.yaml` (gitignored) on top. The pipeline caches model `.onnx` files in `$XDG_CACHE_HOME/playback/voices/`.
 - **Tape constants** use `{{KEY}}` placeholders expanded from `workspace.yaml` before recording.
 - **The timeline** is the single source of truth — built once from tape steps, then refined as audio durations come in.

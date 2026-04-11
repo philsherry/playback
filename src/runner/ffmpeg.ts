@@ -9,6 +9,7 @@ import {
 } from '../constants';
 import type { CaptionFiles, FfmpegResult, SynthesisedSegment, VideoMetadata } from '../types';
 import { escapeAssPath } from '../utilities/escape';
+import { isVerbose, logVerbose, logWarn } from '../logger';
 
 /**
  * Thrown when ffmpeg fails or is not installed.
@@ -22,17 +23,68 @@ export class FfmpegError extends Error {
 }
 
 /**
- * Spawns `ffmpeg -y` with `stdio: 'inherit'` and the provided argument list.
+ * Warning patterns surfaced from ffmpeg stderr in default and quiet modes.
+ * Lines matching any of these patterns are emitted via `logWarn`; all other
+ * lines are suppressed unless `--verbose` is active.
+ */
+const FFMPEG_WARN_PATTERNS = [
+	'Guessed Channel Layout',
+	'does not contain an image sequence pattern',
+	'Too many bits',
+	'Warning:',
+	'Error:',
+];
+
+/**
+ * Returns `true` when an ffmpeg stderr line should be surfaced as a warning
+ * in default/quiet modes (i.e. it matches a known warning pattern and is not
+ * part of the version banner).
+ * @param line - A single line from ffmpeg's stderr output.
+ * @returns `true` if the line matches a known warning pattern.
+ */
+function isWarningLine(line: string): boolean {
+	if (line.startsWith('ffmpeg version')) return false;
+	return FFMPEG_WARN_PATTERNS.some((p) => line.includes(p));
+}
+
+/**
+ * Spawns `ffmpeg -y` with captured stderr and the provided argument list.
  *
  * The `-y` flag overwrites existing output files without prompting.
- * Resolves when ffmpeg exits 0; rejects with {@link FfmpegError} on
- * non-zero exit or if `ffmpeg` is not on `$PATH`.
+ * In verbose mode all stderr passes through via `logVerbose`. In default and
+ * quiet modes only lines matching {@link FFMPEG_WARN_PATTERNS} are surfaced
+ * via `logWarn`; the rest (version banner, encoding stats, stream maps) is
+ * suppressed. Resolves when ffmpeg exits 0; rejects with {@link FfmpegError}
+ * on non-zero exit or if `ffmpeg` is not on `$PATH`.
  * @param args - ffmpeg argument list, excluding the leading `ffmpeg -y`.
  * @returns A promise that resolves when ffmpeg completes successfully.
  */
 function spawnFfmpeg(args: string[]): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const child = spawn(`${FFMPEG_FULL_BIN}/ffmpeg`, ['-y', ...args], { stdio: 'inherit' });
+		const child = spawn(`${FFMPEG_FULL_BIN}/ffmpeg`, ['-y', ...args], {
+			stdio: ['inherit', 'pipe', 'pipe'],
+		});
+
+		const verbose = isVerbose();
+		let stderrBuf = '';
+
+		child.stdout?.on('data', (chunk: Buffer) => {
+			const text = chunk.toString();
+			if (verbose) logVerbose(text.trimEnd());
+		});
+
+		child.stderr?.on('data', (chunk: Buffer) => {
+			const text = chunk.toString();
+			stderrBuf += text;
+			if (verbose) {
+				// Stream line-by-line in verbose mode so output appears live.
+				const lines = stderrBuf.split('\n');
+				stderrBuf = lines.pop() ?? '';
+				for (const line of lines) {
+					if (line.trim()) logVerbose(line);
+				}
+			}
+		});
 
 		child.on('error', (err) => {
 			if ((err as { code?: string }).code === 'ENOENT') {
@@ -47,11 +99,25 @@ function spawnFfmpeg(args: string[]): Promise<void> {
 		});
 
 		child.on('close', (code) => {
-			if (code === 0) {
-				resolve();
-			} else {
-				reject(new FfmpegError(`ffmpeg exited with code ${code}`));
+			// Flush any remaining stderr buffer.
+			if (stderrBuf.trim()) {
+				if (verbose) {
+					logVerbose(stderrBuf.trimEnd());
+				} else {
+					for (const line of stderrBuf.split('\n')) {
+						if (isWarningLine(line)) logWarn(line.trimEnd());
+					}
+				}
 			}
+
+			// In non-verbose mode, scan buffered stderr for warning lines.
+			// (Already streamed live in verbose mode above.)
+
+			if (code !== 0) {
+				reject(new FfmpegError(`ffmpeg exited with code ${code}`));
+				return;
+			}
+			resolve();
 		});
 	});
 }
@@ -261,7 +327,13 @@ async function generateGif(mp4File: string, gifFile: string): Promise<void> {
 	// stats_mode=diff — samples only pixels that change between frames
 	// rather than all pixels. Terminal recordings have large static
 	// background regions; diff mode focuses the palette on the content
-	// that actually moves, which reduces duplicate palette entries.
+	// that actually moves.
+	//
+	// Note: ffmpeg may still emit a "Duped color" or "255(+1) colors"
+	// warning when the theme produces fewer than 256 distinct colours
+	// (common with dark themes that have large uniform backgrounds). This
+	// is benign — the GIF renders correctly — and cannot be reliably
+	// prevented without degrading quality, so it is suppressed.
 	//
 	// The first chain (fps → scale → split) feeds two named pads.
 	// The two chains below it are parallel, so they use `;` separators.

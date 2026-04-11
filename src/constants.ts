@@ -190,7 +190,7 @@ export function narrationDuration(text: string): number {
  *
  * Ceiling rounding inflated every sub-second pause to at least 1 s. This made
  * VHS record more time than `stepDuration` predicted, so the video advanced
- * faster than the audio timeline calculated here. On `demo-tui`, thirteen
+ * faster than the audio timeline calculated here. On `demo/tui`, thirteen
  * key-press steps with `pause: 0.3` each contributed 0.7 s of phantom time,
  * totalling ~9 s of drift before the first narrated section finished.
  *

@@ -7,7 +7,7 @@ episode: 1
 fixedTiming: true
 locale: en-GB
 poster: 5
-series: demo-tui
+series: demo
 tags:
   - demo
   - tui
