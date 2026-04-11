@@ -2,11 +2,8 @@
 	"bin": {
 		"playback": "dist/cli.js"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/philsherry/playback.git"
-	},
 	"dependencies": {
+		"consola": "^3.4.2",
 		"valibot": "^1.3.1",
 		"yaml": "^2.8.3"
 	},
@@ -46,10 +43,14 @@
 	},
 	"files": [
 		"dist",
-		"voices.yaml",
+		"voices.example.yaml",
 		"workspace.example.yaml"
 	],
 	"name": "playback-cli",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/philsherry/playback.git"
+	},
 	"scripts": {
 		"build": "tsup && npm run build:tui",
 		"build:tui": "cd tui && go build -o playback-tui ./cmd/playback-tui",
@@ -65,27 +66,30 @@
 		"lint:ts": "eslint src",
 		"lint:tui": "cd tui && golangci-lint run ./...",
 		"lint:yaml": "yamllint --config-file .yamllint.yaml .",
-		"playback:demo": "cd tui && go run ./cmd/playback-tui studio/example",
+		"playback:demo": "cd tui && go run ./cmd/playback-tui studio/example/tape",
 		"playback:edit": "cd tui && go run ./cmd/playback-tui",
 		"playback:edit:accessible": "cd tui && go run ./cmd/playback-tui --accessible",
 		"playback:edit:hc": "cd tui && go run ./cmd/playback-tui --high-contrast",
 		"playback:edit:report": "cd tui && go run ./cmd/playback-tui --report",
 		"playback:studio:build": "bash studio/build-studio.sh",
 		"playback:studio:build:debug": "bash studio/build-studio.sh debug",
-		"playback:studio:timings": "tsx scripts/debug/timings.ts studio/demo-tui",
-		"playback:studio:timings:accessible": "tsx scripts/debug/timings.ts studio/demo-accessible",
-		"playback:studio:timings:accessible:fix": "tsx scripts/debug/timings.ts studio/demo-accessible --fix",
-		"playback:studio:timings:fix": "tsx scripts/debug/timings.ts studio/demo-tui --fix",
+		"playback:release:timings": "tsx scripts/debug/timings.ts studio/demo/release",
+		"playback:release:timings:fix": "tsx scripts/debug/timings.ts studio/demo/release --fix",
+		"playback:studio:timings": "tsx scripts/debug/timings.ts studio/demo/tui",
+		"playback:studio:timings:accessible": "tsx scripts/debug/timings.ts studio/demo/accessible",
+		"playback:studio:timings:accessible:fix": "tsx scripts/debug/timings.ts studio/demo/accessible --fix",
+		"playback:studio:timings:fix": "tsx scripts/debug/timings.ts studio/demo/tui --fix",
 		"playback:tape": "tsx src/cli.ts tape",
 		"playlist:build": "tsx scripts/playlist.ts",
 		"postsetup": "npm run build",
 		"prepare": "husky || true",
 		"prepublishOnly": "tsup",
 		"release:check": "node scripts/release/check.cjs",
-		"release:prepare": "run-s test:ts test:tui typecheck release:check",
 		"release:notes": "node scripts/release/notes-from-changelog.cjs",
+		"release:prepare": "run-s lint test:ts test:tui typecheck test:smoke release:check",
 		"setup": "bash scripts/setup.sh",
 		"test": "run-s test:ts test:tui",
+		"test:smoke": "node dist/cli.js validate studio/example/tape && node dist/cli.js validate studio/demo/release",
 		"test:ts": "vitest run",
 		"test:tui": "cd tui && go test ./...",
 		"test:watch": "vitest",
@@ -93,5 +97,5 @@
 		"validate": "tsx src/cli.ts validate"
 	},
 	"type": "module",
-	"version": "1.0.6"
+	"version": "1.1.0"
 }

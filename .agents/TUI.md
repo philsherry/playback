@@ -8,8 +8,8 @@ The TUI is a Go/Bubbletea application for post-production editing of tape timing
 
 ```sh
 npm run playback:edit                         # tape picker (scans tapesDir)
-npm run playback:edit -- studio/example       # open a specific tape
-npm run playback:demo                         # shortcut for studio/example
+npm run playback:edit -- studio/example/tape  # open a specific tape
+npm run playback:demo                         # shortcut for studio/example/tape
 npm run playback:edit:accessible              # sequential interactive mode
 npm run playback:edit:hc                      # high-contrast mode
 npm run playback:edit:report                  # plain-text timing report

@@ -1,6 +1,6 @@
 ---
 title: The accessible timing editor
-output: studio/demo-accessible
+output: studio/demo/accessible
 steps:
   # Launch accessible mode with the demo tape.
   - action: type

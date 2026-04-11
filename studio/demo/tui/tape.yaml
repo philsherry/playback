@@ -1,6 +1,6 @@
 ---
 title: The playback TUI editor
-output: studio/demo-tui
+output: studio/demo/tui
 steps:
   # Brief pause for the shell prompt to settle (suppresses zsh autosuggestion ghost text).
   - action: comment

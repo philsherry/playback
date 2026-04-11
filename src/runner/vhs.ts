@@ -6,6 +6,7 @@ import { FFMPEG_FULL_BIN } from '../constants';
 import type { ParsedTape, VhsResult } from '../types';
 import { prepareWorkspaceSandbox } from '../workspace';
 import type { ResolvedWorkspace } from '../workspace';
+import { isVerbose, logVerbose } from '../logger';
 
 /**
  * Thrown when the VHS process fails or cannot be spawned.
@@ -102,9 +103,11 @@ function clonesWorkspaceSource(parsed: ParsedTape, workspace: ResolvedWorkspace)
 }
 
 /**
- * Spawns the `vhs` binary with `stdio: 'inherit'` so its progress output is
- * visible in the terminal. Resolves when VHS exits 0; rejects with a
- * {@link VhsError} on non-zero exit or if `vhs` is not on `$PATH`.
+ * Spawns the `vhs` binary with captured stdout/stderr. In verbose mode output
+ * passes through via `logVerbose`; in default and quiet modes VHS stdout
+ * (which echoes tape content and progress lines) is suppressed. Resolves when
+ * VHS exits 0; rejects with a {@link VhsError} on non-zero exit or if `vhs`
+ * is not on `$PATH`.
  * @param tapeFile - Absolute path to the `.tape` file to record.
  * @param cwd - Working directory for the VHS process (the isolated temp dir).
  * @returns A promise that resolves when recording completes successfully.
@@ -115,7 +118,20 @@ function spawnVhs(tapeFile: string, cwd: string): Promise<void> {
 			...process.env,
 			PATH: `${FFMPEG_FULL_BIN}:${process.env.PATH ?? ''}`,
 		};
-		const child = spawn('vhs', [tapeFile], { cwd, env, stdio: 'inherit' });
+		const verbose = isVerbose();
+		const child = spawn('vhs', [tapeFile], {
+			cwd,
+			env,
+			stdio: ['inherit', 'pipe', 'pipe'],
+		});
+
+		child.stdout?.on('data', (chunk: Buffer) => {
+			if (verbose) logVerbose(chunk.toString().trimEnd());
+		});
+
+		child.stderr?.on('data', (chunk: Buffer) => {
+			if (verbose) logVerbose(chunk.toString().trimEnd());
+		});
 
 		child.on('error', (err) => {
 			if ((err as Error & { code?: string }).code === 'ENOENT') {
@@ -131,11 +147,11 @@ function spawnVhs(tapeFile: string, cwd: string): Promise<void> {
 		});
 
 		child.on('close', (code) => {
-			if (code === 0) {
-				resolve();
-			} else {
+			if (code !== 0) {
 				reject(new VhsError(`VHS exited with code ${code}`, code));
+				return;
 			}
+			resolve();
 		});
 	});
 }

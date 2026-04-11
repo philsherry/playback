@@ -7,6 +7,7 @@ import { applySubstitutions } from '../substitutions';
 import { getVoiceModel } from '../voices';
 import { voicesCacheDir } from '../paths';
 import { FFMPEG_FULL_BIN } from '../constants';
+import { logWarn } from '../logger';
 
 /**
  * Thrown when piper-tts fails, is not installed, or a required voice model is missing.
@@ -148,15 +149,21 @@ function synthesise(
 		});
 
 		child.on('close', (code) => {
-			if (code === 0) {
-				resolve();
-			} else {
+			if (code !== 0) {
 				reject(
 					new PiperError(
 						`piper exited with code ${code}${stderr ? `:\n${stderr.trim()}` : ''}`
 					)
 				);
+				return;
 			}
+			// Surface any synthesis warnings without requiring a crash.
+			if (stderr.trim()) {
+				for (const line of stderr.trim().split('\n')) {
+					if (line.trim()) logWarn(`piper: ${line.trim()}`);
+				}
+			}
+			resolve();
 		});
 
 		// Write narration text to piper's stdin and close it

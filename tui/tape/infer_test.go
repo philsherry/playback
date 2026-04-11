@@ -55,10 +55,10 @@ func TestInferTapesDir_SingleSeries(t *testing.T) {
 }
 
 func TestInferTapesDir_FlatStructure(t *testing.T) {
-	// studio/example/tape.yaml
+	// flat/single-level structure: studio/tape/tape.yaml
 	root := t.TempDir()
 	studioDir := filepath.Join(root, "studio")
-	exampleDir := filepath.Join(studioDir, "example")
+	exampleDir := filepath.Join(studioDir, "tape")
 	if err := os.MkdirAll(exampleDir, 0o755); err != nil {
 		t.Fatal(err)
 	}

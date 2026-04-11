@@ -1,54 +1,30 @@
-# Release notes — v1.0.6
+# Release notes — v1.1.0
 
-## `--tapes-dir` flag for `playlist:build`
+## Structured logging, CLI theming, and XDG config
 
-Point `playlist:build` at any tape directory without changing `playback.config.ts`:
+Playback 1.1.0 ships three connected features: structured logging,
+configurable themes, and an XDG config that works across all your projects.
 
-```sh
-npm run playlist:build -- --tapes-dir /path/to/tapes
-npm run playlist:build -- --tapes-dir /path/to/tapes --web
-```
+### Structured logging
 
-Accepts absolute paths, so tapes that live in a separate repo are now first-class
-targets. Other forwarded flags (`--web`, `--vhs-only`, etc.) continue to work
-alongside it.
+consola-backed logger with three verbosity levels: default (info),
+--quiet (warnings and errors only), and --verbose (full subprocess output).
+The pipeline captures and filters ffmpeg stderr; only actionable warnings surface.
 
----
+### CLI theming
 
-## Web output images
+Eleven built-in colour themes: Tokyo Night (four variants), Catppuccin
+(four flavours), Dracula, and high-contrast WCAG AAA. Set the theme in
+your XDG config, or drop a theme.yaml into a project to override locally.
 
-`--web` now produces two poster images per episode instead of one:
+### XDG config
 
-- `*.poster.png` — full-resolution frame extracted from the video (renamed from `*.png`)
-- `*.card.png` — 50%-scaled version for use as a thumbnail or embed image
+~/.config/playback/config.yaml applies across all your projects. Set your
+theme, log level, and default voices in one place. The TUI reads the same
+file to pick its colour theme.
 
-`manifest.json` includes both. A third field, `og`, holds `null` until a generation
-strategy lands — it will carry a 1200×630 Open Graph image.
+### XDG voices catalogue
 
----
-
-## ffmpeg warning fixes
-
-Three recurring ffmpeg warnings are now suppressed:
-
-**`Too many bits 8192 > 6144 per frame`** — Piper outputs mono WAV at 22050 Hz. At
-that sample rate the AAC encoder computed ~8192 bits/frame, exceeding the 6144
-per-channel limit. Adding `-ar 44100` resamples before encoding, dropping the
-per-frame count to ~2973.
-
-**`image sequence pattern`** — `generateCard` was missing `-frames:v 1 -update 1`,
-which `extractPoster` already had. ffmpeg requires these flags when writing a
-single image to a plain `.png` path.
-
-**`Guessed Channel Layout: mono`** — ffmpeg was guessing the channel layout of each
-Piper WAV input. Explicit `-channel_layout mono` per-input provides the answer
-upfront.
-
-**GIF palette `Duped color` / `255(+1)`** — `palettegen` was reserving one palette
-slot for transparency (terminal video has none) and sampling all pixels including
-large static background regions. `reserve_transparent=0` reclaims the slot;
-`stats_mode=diff` limits sampling to pixels that actually change between frames,
-which suits terminal recordings and eliminates the duplicate entries. `paletteuse`
-now uses `dither=bayer:bayer_scale=5:diff_mode=rectangle` for crisper text
-rendering. The filtergraph separator between the two parallel chains after `split`
-was also corrected from `,` to `;`.
+~/.config/playback/voices.yaml is the user-level base catalogue, merged
+with an optional per-project voices.yaml. Run npm run setup to bootstrap
+the catalogue and download model files.

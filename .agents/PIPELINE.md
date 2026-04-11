@@ -45,8 +45,10 @@ The playback pipeline takes a tape directory and produces a finished video with 
 ### 10. Post-processing (optional)
 
 - `src/generator/chapters.ts` — FFMETADATA1 chapter markers
-- `src/generator/manifest.ts` — web manifest for browser playback (`--web` flag)
+- `src/generator/manifest.ts` — web manifest for browser playback (`--web` flag); includes `poster` and `card` paths
 - `src/audit/timings.ts` — timing audit for overlap detection (`--audit` flag)
+
+**Poster and card images:** `runFfmpeg()` in `src/runner/ffmpeg.ts` generates a poster `.png` (1280×720) from either a `poster.png` file in the tape directory or a frame timestamp in `meta.yaml`. It also generates a card `.png` at 50% scale (640×360) named `{output}.card.png` whenever a poster is produced. Both paths are included in `FfmpegResult` and written to the manifest.
 
 ## External dependencies
 
@@ -84,8 +86,8 @@ This lazy validation means tapes that don't use any workspace constants work wit
 
 ## Voices
 
-`voices.yaml` is the single source of truth for available piper-tts voices. Four modules read it: `scripts/setup.sh`, `src/schema/meta.ts`, `src/runner/piper.ts`, and the TUI. The pipeline caches models in `$XDG_CACHE_HOME/playback/voices/`, sharing them across every project that uses playback.
+The pipeline loads the voice catalogue from `$XDG_CONFIG_HOME/playback/voices.yaml` (user-level base) merged with a project-local `voices.yaml` (gitignored, optional — project entries win). `npm run setup` bootstraps the XDG catalogue from `voices.example.yaml` on first run. The pipeline caches model `.onnx` files in `$XDG_CACHE_HOME/playback/voices/`, sharing them across every project that uses playback.
 
 Current voices: `alan`, `alba`, `northern_english_male`, `southern_english_female` — all en-GB.
 
-**Adding a new voice:** add an entry to `voices.yaml` and also add VITS tuning parameters to `VOICE_CONFIG` in `src/runner/piper.ts` (`noiseScale`, `noiseW`, `lengthScale`). Both files must stay in sync.
+**Adding a new voice:** add an entry to `$XDG_CONFIG_HOME/playback/voices.yaml` (or a project-local `voices.yaml`) and also add VITS tuning parameters to `VOICE_CONFIG` in `src/runner/piper.ts` (`noiseScale`, `noiseW`, `lengthScale`). Update `voices.example.yaml` if adding a voice for all users. Run `npm run setup` to download the model files.

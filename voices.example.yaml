@@ -1,12 +1,18 @@
 ---
-## Voice catalogue for playback.
+## Reference template for the playback voice catalogue.
 ##
-## This file is the single source of truth for available piper-tts voices.
-## It is read by:
-##   - scripts/setup.sh    — downloads .onnx model files
+## `npm run setup` copies this file to $XDG_CONFIG_HOME/playback/voices.yaml
+## on first run. Edit that copy to add or customise voices for your user
+## account. You can also create a project-local voices.yaml alongside your
+## tape directory — project entries win over the XDG catalogue on name
+## collision.
+##
+## The catalogue is read by:
+##   - scripts/setup.sh    — bootstraps the XDG catalogue; downloads models
+##   - src/voices.ts       — merges XDG + project catalogues at runtime
 ##   - src/schema/meta.ts  — validates voice selections in meta.yaml
 ##   - src/runner/piper.ts — resolves model file paths for synthesis
-##   - tui/                — voice picker and display
+##   - tui/tape/voices.go  — voice display in the TUI
 ##
 ## To add a new voice:
 ##   1. Find it at https://rhasspy.github.io/piper-samples/

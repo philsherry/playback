@@ -37,7 +37,9 @@ import { runFfmpeg, FfmpegError } from './runner/ffmpeg';
 import { generateManifest } from './generator/manifest';
 import type { VoiceOutput } from './generator/manifest';
 import { stepToTime, VIDEO_HEIGHT } from './constants';
-import { loadConfig } from './config';
+import { loadConfig, loadRawProjectConfig, CONFIG_DEFAULTS } from './config';
+import { loadXdgConfig, xdgThemeOverridePath } from './config/xdg';
+import { loadTheme } from './theme';
 import type { SynthesisedSegment, VideoMetadata } from './types';
 import type { Voice } from './schema/meta';
 import {
@@ -48,6 +50,7 @@ import {
 	getRequiredSourceNames,
 	validateWorkspaceReferences,
 } from './workspace';
+import { configureLogger, logError, logInfo, logSuccess, logVerbose, logWarn } from './logger';
 
 // ── Argument parsing ───────────────────────────────────────────────────────────
 
@@ -87,6 +90,21 @@ const mkvFlag = flags.has('--mkv');
 /** When `true` and command is `scaffold`, overwrite an existing PROMPT.md. */
 const scaffoldForce = command === 'scaffold' && flags.has('--force');
 
+/** When `true`, suppress all output except warnings and errors. */
+const quietFlag = flags.has('--quiet');
+
+/** When `true`, show verbose output including subprocess logs. */
+const verboseFlag = flags.has('--verbose');
+
+// ── Logger bootstrap ──────────────────────────────────────────────────────────
+
+// Configure the logger level from CLI flags immediately so all subsequent
+// output respects the user's choice. Theme is applied later after the XDG
+// config and project config are loaded.
+configureLogger({
+	level: verboseFlag ? 'verbose' : quietFlag ? 'warn' : 'info',
+});
+
 // ── Help ──────────────────────────────────────────────────────────────────────
 
 /**
@@ -96,7 +114,7 @@ const scaffoldForce = command === 'scaffold' && flags.has('--force');
  * environment variable is not set. Otherwise outputs plain text.
  */
 function printHelp(): void {
-	const useColour = process.stdout.isTTY && !process.env['NO_COLOR'];
+	const useColour = process.stdout.isTTY && !process.env.NO_COLOR;
 
 	const bold = (s: string) => useColour ? `\x1b[1m${s}\x1b[0m` : s;
 	const cyan = (s: string) => useColour ? `\x1b[1m\x1b[36m${s}\x1b[0m` : s;
@@ -106,7 +124,7 @@ function printHelp(): void {
 
 	void bold; // referenced via cyan/white/dim
 
-	console.log(`
+	process.stdout.write(`
 ${cyan('playback')} ${dim('—')} ${cyan('accessible terminal demo video creation tool')}
 
 ${cyan('Usage:')}
@@ -123,6 +141,8 @@ ${cyan('Usage:')}
   ${white('playback scaffold <dir>')} ${yellow('--force')}      ${dim('Overwrite an existing PROMPT.md')}
 
 ${cyan('Options:')}
+  ${yellow('--quiet')}       ${dim('Suppress progress output; show warnings and errors only')}
+  ${yellow('--verbose')}     ${dim('Show all output including subprocess logs')}
   ${yellow('-h, --help')}    ${dim('Show this help message')}
 `);
 }
@@ -134,14 +154,14 @@ if (!command || command === '--help' || command === '-h') {
 
 // ── Validation ─────────────────────────────────────────────────────────────────
 
-if (command !== 'tape' && command !== 'validate' && command !== 'scaffold') {
-	console.error(`Unknown command: ${command}`);
-	console.error('Run playback --help for usage.');
+if (!['tape', 'validate', 'scaffold'].includes(command)) {
+	logError(`Unknown command: ${command}`);
+	logError('Run playback --help for usage.');
 	process.exit(1);
 }
 
 if (!tapePath) {
-	console.error(`Missing tape directory. Usage: playback ${command} <dir>`);
+	logError(`Missing tape directory. Usage: playback ${command} <dir>`);
 	process.exit(1);
 }
 
@@ -158,7 +178,20 @@ const AUDIO_BUFFER = 0.5;
  *
  */
 async function run(): Promise<void> {
-	const config = await loadConfig();
+	// Load XDG user config and project config in parallel.
+	const xdgConfig = loadXdgConfig();
+	const [config, rawProjectConfig] = await Promise.all([
+		loadConfig(),
+		loadRawProjectConfig(),
+	]);
+
+	// Resolve the CLI theme from the XDG config and apply it to the logger.
+	// The log level was already set from CLI flags above; we only update the
+	// theme here so the reporter uses the user's chosen colour palette.
+	const themeName = xdgConfig?.theme ?? 'default';
+	const theme = loadTheme(themeName, xdgThemeOverridePath());
+	configureLogger({ theme });
+
 	const DIST_DIR = resolve(process.cwd(), config.outputDir);
 	const projectRoot = process.cwd();
 	const workspaceConfig = loadWorkspace(projectRoot);
@@ -170,26 +203,30 @@ async function run(): Promise<void> {
 	const outputDir = join(DIST_DIR, tape.output);
 	const outputSlug = basename(tape.output);
 
-	console.log(`▶ ${meta.title}`);
-	console.log('  Validating workspace paths…');
+	logInfo(`▶ ${meta.title}`);
+	logInfo('  Validating workspace paths…');
 	validateWorkspaceReferences(parsed, workspace);
 
 	if (command === 'validate') {
-		console.log(`\n✓ Valid. Tape: ${parsed.dir}`);
+		logVerbose(`  Steps: ${tape.steps.length}`);
+		logVerbose(`  Voices: ${meta.voices.join(', ')}`);
+		logVerbose(`  Output: ${outputDir}`);
+		if (meta.fixedTiming) logVerbose('  Fixed timing: true');
+		logSuccess(`\n✓ Valid. Tape: ${parsed.dir}`);
 		return;
 	}
 
 	if (command === 'scaffold') {
 		const promptPath = join(parsed.dir, 'PROMPT.md');
 		if (existsSync(promptPath) && !scaffoldForce) {
-			console.error(`✗ PROMPT.md already exists: ${promptPath}`);
-			console.error('  Use --force to overwrite.');
+			logError(`✗ PROMPT.md already exists: ${promptPath}`);
+			logError('  Use --force to overwrite.');
 			process.exit(1);
 		}
 		const timeline = buildTimeline(parsed);
 		const content = generateScaffold(parsed, timeline.totalDuration);
 		writeFileSync(promptPath, content, 'utf8');
-		console.log(`✓ Scaffold written: ${promptPath}`);
+		logSuccess(`✓ Scaffold written: ${promptPath}`);
 		return;
 	}
 
@@ -212,14 +249,22 @@ async function run(): Promise<void> {
 		track: meta.episode,
 	};
 
-	const voices = (meta.voices ?? config.defaultVoices) as Voice[];
+	// Voices precedence: tape meta.yaml → project config (explicit) → XDG user
+	// config → built-in default. loadRawProjectConfig() gives us only what the
+	// user explicitly wrote, so we can tell apart "explicitly set" from "defaulted".
+	const voices = (
+		meta.voices ??
+		rawProjectConfig?.defaultVoices ??
+		xdgConfig?.voices ??
+		CONFIG_DEFAULTS.defaultVoices
+	) as Voice[];
 	const webEnabled = webFlag || config.webOutput;
 
 	// vhsOnly: record terminal only, no audio processing.
 	if (vhsOnly) {
-		console.log('  Recording terminal…');
+		logInfo('  Recording terminal…');
 		const { rawMp4 } = await runVhs(parsed, DIST_DIR, workspace);
-		console.log(`\n✓ Done. Raw recording: ${rawMp4}`);
+		logSuccess(`\n✓ Done. Raw recording: ${rawMp4}`);
 		return;
 	}
 
@@ -246,7 +291,7 @@ async function run(): Promise<void> {
 	}
 
 	// Step 1 — Build the timeline (single source of truth for all timing).
-	console.log('  Building timeline…');
+	logInfo('  Building timeline…');
 	const timeline = buildTimeline(parsed);
 
 	// For fixedTiming, restore narration onto the timeline events so audio
@@ -270,13 +315,13 @@ async function run(): Promise<void> {
 
 	if (script.segments.length === 0) {
 		// No narration — record and mix without audio.
-		console.log('  Generating chapters…');
+		logInfo('  Generating chapters…');
 		const chaptersNoNarr = generateChapters(timeline, parsed.tape.steps, outputDir);
-		console.log('  Recording terminal…');
+		logInfo('  Recording terminal…');
 		const { rawMp4 } = await runVhs(parsed, DIST_DIR, workspace);
-		console.log('  No narration found — skipping audio and captions.');
+		logWarn('  No narration found — skipping audio and captions.');
 		await runFfmpeg(rawMp4, [], { assFile: '', srtFile: '', vttFile: '' }, outputDir, outputSlug, posterTime, parsed.posterFile, videoMetadata, undefined, chaptersNoNarr.hasExplicit ? chaptersNoNarr.path : undefined);
-		console.log(`\n✓ Done. Output: ${outputDir}`);
+		logSuccess(`\n✓ Done. Output: ${outputDir}`);
 		return;
 	}
 
@@ -289,15 +334,26 @@ async function run(): Promise<void> {
 	let primarySynthesised: SynthesisedSegment[] | null = null;
 
 	if (!captionsOnly) {
-		console.log(`  Synthesising audio (${voices.join(', ')})…`);
-		console.log(`  Voice: ${primaryVoice}`);
+		logInfo(`  Synthesising audio (${voices.join(', ')})…`);
+		logVerbose(`  Voice: ${primaryVoice}`);
 		primarySynthesised = await runPiper(script.segments, outputDir, primaryVoice, config.voicesDir);
 
 		// Back-fill timeline with real durations, recalculate start times,
 		// and resolve narration overlaps — unless fixedTiming is set, in
 		// which case the author's pause values are authoritative (used for
 		// choreographed tapes where actions fire during narration).
-		if (!meta.fixedTiming) {
+		if (meta.fixedTiming) {
+			logWarn('  Fixed timing — skipping back-fill.');
+			// Still record audio durations on the timeline for audit/overlay,
+			// but don't extend step durations or recalculate start times.
+			const segByStep = new Map(primarySynthesised.map((s) => [s.stepIndex, s]));
+			for (const event of timeline.events) {
+				const seg = segByStep.get(event.stepIndex);
+				if (seg && event.narration) {
+					event.narration.audioDuration = seg.audioDuration;
+				}
+			}
+		} else {
 			applyAudioDurations(timeline, primarySynthesised, AUDIO_BUFFER);
 
 			// Also update the in-memory parsed.tape.steps so that runVhs (which
@@ -316,17 +372,6 @@ async function run(): Promise<void> {
 					// The narration text is preserved in the timeline and
 					// synthesised segments for captions and the audio mix.
 					step.narration = undefined;
-				}
-			}
-		} else {
-			console.log('  Fixed timing — skipping back-fill.');
-			// Still record audio durations on the timeline for audit/overlay,
-			// but don't extend step durations or recalculate start times.
-			const segByStep = new Map(primarySynthesised.map((s) => [s.stepIndex, s]));
-			for (const event of timeline.events) {
-				const seg = segByStep.get(event.stepIndex);
-				if (seg && event.narration) {
-					event.narration.audioDuration = seg.audioDuration;
 				}
 			}
 		}
@@ -354,14 +399,14 @@ async function run(): Promise<void> {
 	// diffing). It is only embedded into the MP4 when tape steps contain
 	// explicit `chapter` steps — when hasExplicit is true, the chapter file
 	// is passed to runFfmpeg for embedding.
-	console.log('  Generating chapters…');
+	logInfo('  Generating chapters…');
 	const chaptersResult = generateChapters(timeline, parsed.tape.steps, outputDir);
 
 	// Build debug overlay filter if requested (before VHS so it's ready for ffmpeg).
 	const overlayFilter = debugOverlayFlag ? buildOverlayFilter(timeline) : undefined;
 
 	// Step 3 — Record VHS. Pauses are now guaranteed to fit the audio.
-	console.log('  Recording terminal…');
+	logInfo('  Recording terminal…');
 	const { rawMp4 } = await runVhs(parsed, DIST_DIR, workspace);
 
 	// Step 4 — Process each voice: captions + ffmpeg mix.
@@ -376,7 +421,7 @@ async function run(): Promise<void> {
 
 	for (const voice of voices) {
 		if (voice !== primaryVoice) {
-			console.log(`  Voice: ${voice}`);
+			logVerbose(`  Voice: ${voice}`);
 		}
 
 		// Reuse already-synthesised WAV files for the primary voice; synthesise
@@ -388,17 +433,17 @@ async function run(): Promise<void> {
 		);
 
 		if (!captionsOnly) {
-			console.log('  Generating captions…');
+			logInfo('  Generating captions…');
 		}
 		const captions = generateCaptions(synthesised, outputDir, outputSlug, captionMarginV);
 
 		if (captionsOnly) {
-			console.log(`  ✓ Captions: ${captions.vttFile}`);
+			logSuccess(`  ✓ Captions: ${captions.vttFile}`);
 			continue;
 		}
 
 		// ffmpeg stitch
-		console.log('  Stitching video…');
+		logInfo('  Stitching video…');
 		const result = await runFfmpeg(
 			rawMp4,
 			synthesised,
@@ -413,12 +458,12 @@ async function run(): Promise<void> {
 			mkvFlag
 		);
 
-		console.log(`  ✓ ${result.mp4File}`);
-		console.log(`  ✓ ${result.gifFile}`);
-		if (result.mkvFile) console.log(`  ✓ ${result.mkvFile}`);
-		if (result.posterFile) console.log(`  ✓ ${result.posterFile}`);
-		if (result.cardFile) console.log(`  ✓ ${result.cardFile}`);
-		if (result.ogFile) console.log(`  ✓ ${result.ogFile}`);
+		logSuccess(`  ✓ ${result.mp4File}`);
+		logSuccess(`  ✓ ${result.gifFile}`);
+		if (result.mkvFile) logSuccess(`  ✓ ${result.mkvFile}`);
+		if (result.posterFile) logSuccess(`  ✓ ${result.posterFile}`);
+		if (result.cardFile) logSuccess(`  ✓ ${result.cardFile}`);
+		if (result.ogFile) logSuccess(`  ✓ ${result.ogFile}`);
 		lastPosterFile = result.posterFile;
 		lastCardFile = result.cardFile;
 		lastOgFile = result.ogFile;
@@ -436,12 +481,12 @@ async function run(): Promise<void> {
 
 	// Web output — generate manifest
 	if (webEnabled && voiceOutputs.length > 0) {
-		console.log('  Generating manifest…');
+		logInfo('  Generating manifest…');
 		const manifestFile = generateManifest(parsed, outputDir, lastPosterFile, lastCardFile, lastOgFile, voiceOutputs);
-		console.log(`  ✓ ${manifestFile}`);
+		logSuccess(`  ✓ ${manifestFile}`);
 	}
 
-	console.log(`\n✓ Done. Output: ${outputDir}`);
+	logSuccess(`\n✓ Done. Output: ${outputDir}`);
 }
 
 /**
@@ -480,9 +525,9 @@ run().catch((err: unknown) => {
 		err instanceof PiperError ||
 		err instanceof FfmpegError
 	) {
-		console.error(`\n✗ ${err.message}`);
+		logError(`\n✗ ${(err as Error).message}`);
 	} else {
-		console.error('\n✗ Unexpected error:', err);
+		logError(`\n✗ Unexpected error: ${String(err)}`);
 	}
 
 	process.exit(1);

@@ -10,12 +10,12 @@
  *   tsx scripts/debug/timings.ts [tape-dir] [--fix]
  *
  * Examples:
- *   tsx scripts/debug/timings.ts studio/demo-tui
- *   tsx scripts/debug/timings.ts studio/demo-tui --fix
- *   tsx scripts/debug/timings.ts studio/demo-accessible --fix
- *   npm exec -- tsx scripts/debug/timings.ts studio/demo-tui --fix
+ *   tsx scripts/debug/timings.ts studio/demo/tui
+ *   tsx scripts/debug/timings.ts studio/demo/tui --fix
+ *   tsx scripts/debug/timings.ts studio/demo/accessible --fix
+ *   npm exec -- tsx scripts/debug/timings.ts studio/demo/tui --fix
  *
- * Defaults to studio/demo-tui when no argument is given.
+ * Defaults to studio/demo/tui when no argument is given.
  *
  * This script stays in TypeScript because it is user-run tooling, not a CI/CD
  * entrypoint. Run it via an npm script or `npm exec -- tsx ...` if `tsx` is
@@ -52,7 +52,7 @@ function ffprobeDuration(wavPath: string): number | null {
 const args = process.argv.slice(2);
 const fixMode = args.includes('--fix');
 const positional = args.find((arg) => !arg.startsWith('--'));
-const tapeDir = resolve(root, positional ?? 'studio/demo-tui');
+const tapeDir = resolve(root, positional ?? 'studio/demo/tui');
 const tapeYaml = join(tapeDir, 'tape.yaml');
 
 if (!existsSync(tapeYaml)) {

@@ -108,7 +108,7 @@ export function generateVhsTape(parsed: ParsedTape): string {
  * The original implementation used `Math.ceil` to round sleep values up to
  * the nearest whole second. This seemed safe — surely more time is better
  * than less? In practice it caused systematic drift. A step with `pause: 0.3`
- * rounded up to `Sleep 1s`; thirteen such key-press steps in `demo-tui`
+ * rounded up to `Sleep 1s`; thirteen such key-press steps in `demo/tui`
  * accumulated ~9 extra seconds of video time before the audio timeline caught
  * up, pushing narration 9 seconds behind the matching on-screen action.
  *

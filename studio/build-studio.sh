@@ -9,8 +9,8 @@ set -euo pipefail
 #
 # This script orchestrates the multi-tape build:
 #   1. Reset the example tape to its pristine state (with overlaps)
-#   2. Run the pipeline for demo-tui        → blockbuster/studio/demo-tui/
-#   3. Run the pipeline for demo-accessible → blockbuster/studio/demo-accessible/
+#   2. Run the pipeline for demo/tui        → blockbuster/studio/demo/tui/
+#   3. Run the pipeline for demo/accessible → blockbuster/studio/demo/accessible/
 #   4. Copy web-ready output to studio/dist/
 #
 # Usage:
@@ -21,7 +21,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 STUDIO_DIR="${SCRIPT_DIR}"
-EXAMPLE_DIR="${STUDIO_DIR}/example"
+EXAMPLE_DIR="${STUDIO_DIR}/example/tape"
 DIST_DIR="${STUDIO_DIR}/dist"
 
 # ── Debug mode ───────────────────────────────────────────────────────────────
@@ -60,45 +60,45 @@ else
   exit 1
 fi
 
-# ── Step 1: Build demo-tui ───────────────────────────────────────────────────
+# ── Step 1: Build demo/tui ────────────────────────────────────────────────────
 
-header "Step 1: Build demo-tui"
+header "Step 1: Build demo/tui"
 
 cd "${PROJECT_ROOT}"
 # shellcheck disable=SC2086
-tsx src/cli.ts tape studio/demo-tui --web ${DEBUG_FLAGS}
+tsx src/cli.ts tape studio/demo/tui --web ${DEBUG_FLAGS}
 
-TUI_OUTPUT="${PROJECT_ROOT}/blockbuster/studio/demo-tui"
-TUI_DIST="${DIST_DIR}/demo-tui"
+TUI_OUTPUT="${PROJECT_ROOT}/blockbuster/studio/demo/tui"
+TUI_DIST="${DIST_DIR}/demo/tui"
 mkdir -p "${TUI_DIST}"
 
 # Copy web-ready output to dist.
 for ext in mp4 gif png vtt srt manifest.json; do
-  src="${TUI_OUTPUT}/demo-tui.${ext}"
+  src="${TUI_OUTPUT}/tui.${ext}"
   if [[ -f "${src}" ]]; then
-    cp "${src}" "${TUI_DIST}/demo-tui.${ext}"
-    info "demo-tui.${ext} → dist/"
+    cp "${src}" "${TUI_DIST}/tui.${ext}"
+    info "tui.${ext} → dist/"
   fi
 done
 
-# ── Step 2: Build demo-accessible ────────────────────────────────────────────
+# ── Step 2: Build demo/accessible ─────────────────────────────────────────────
 
-header "Step 2: Build demo-accessible"
+header "Step 2: Build demo/accessible"
 
 cd "${PROJECT_ROOT}"
 # shellcheck disable=SC2086
-tsx src/cli.ts tape studio/demo-accessible --web ${DEBUG_FLAGS}
+tsx src/cli.ts tape studio/demo/accessible --web ${DEBUG_FLAGS}
 
-ACC_OUTPUT="${PROJECT_ROOT}/blockbuster/studio/demo-accessible"
-ACC_DIST="${DIST_DIR}/demo-accessible"
+ACC_OUTPUT="${PROJECT_ROOT}/blockbuster/studio/demo/accessible"
+ACC_DIST="${DIST_DIR}/demo/accessible"
 mkdir -p "${ACC_DIST}"
 
 # Copy web-ready output to dist.
 for ext in mp4 gif png vtt srt manifest.json; do
-  src="${ACC_OUTPUT}/demo-accessible.${ext}"
+  src="${ACC_OUTPUT}/accessible.${ext}"
   if [[ -f "${src}" ]]; then
-    cp "${src}" "${ACC_DIST}/demo-accessible.${ext}"
-    info "demo-accessible.${ext} → dist/"
+    cp "${src}" "${ACC_DIST}/accessible.${ext}"
+    info "accessible.${ext} → dist/"
   fi
 done
 
@@ -106,8 +106,8 @@ done
 
 header "Done"
 echo ""
-echo "dist/demo-tui/:"
+echo "dist/demo/tui/:"
 ls -lh "${TUI_DIST}"/ 2>/dev/null || true
 echo ""
-echo "dist/demo-accessible/:"
+echo "dist/demo/accessible/:"
 ls -lh "${ACC_DIST}"/ 2>/dev/null || true
