@@ -53,3 +53,5 @@ When something fails again and again, when the user has to re-explain or tell yo
 - Never commit without explicit user instruction. One clean commit per PR.
 - `__dirname ?? fallback` throws in ESM — guard with an existence check, not `??`.
 - `test:smoke` runs built `dist/cli.js` against real tapes; `tsx` masks ESM-only bugs.
+- VHS `Type` types characters verbatim — `\\` is two backslashes, not one. Don't escape `\` in `escapeVhs`.
+- VHS `Type "..."` has no escape for `"` — schema rejects commands containing double quotes.

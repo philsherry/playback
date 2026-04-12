@@ -4,6 +4,17 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-12
+
+### Added
+
+- **`playback playlist` subcommand** — batch-build all tapes in `tapesDir` consecutively. Reads `tapesDir` from `playback.config.ts` by default; accepts `--tapes-dir <path>` to override. All remaining flags pass through to each `playback tape` invocation (e.g. `playback playlist -- --vhs-only`). Stops at the first failure.
+
+### Changed
+
+- `cli.ts` refactored into a pure command dispatcher — tape pipeline logic extracted to `src/commands/tape.ts`, playlist logic to `src/commands/playlist.ts`
+- `clean` script uses `rimraf` instead of `rm -rf` for cross-platform compatibility
+
 ## [1.1.0] - 2026-04-11
 
 ### Added

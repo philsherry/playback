@@ -30,6 +30,18 @@
 import * as v from 'valibot';
 
 /**
+ * Validates that a command string contains no double-quote characters.
+ *
+ * VHS `Type "..."` strings have no escape sequence for `"` — the parser
+ * terminates the string at the first unescaped double quote. Use single
+ * quotes inside commands instead.
+ */
+const noDoubleQuotes = v.pipe(
+	v.string(),
+	v.check((s) => !s.includes('"'), 'Commands cannot contain double quotes — use single quotes instead.')
+);
+
+/**
  * Optional pause duration shared by all step types.
  * Must be a non-negative number of seconds.
  * Defaults to 0.5 s when omitted; see `DEFAULT_PAUSE` in `generator/vhs.ts`.
@@ -64,8 +76,8 @@ const narrationOffset = v.optional(v.number());
  */
 const TypeStep = v.object({
 	action: v.literal('type'),
-	/** Shell command to type. Special characters are escaped by `escapeVhs`. */
-	command: v.string(),
+	/** Shell command to type. Special characters are escaped by `escapeVhs`. Must not contain `"`. */
+	command: noDoubleQuotes,
 	narration,
 	narrationOffset,
 	pause,
@@ -81,8 +93,8 @@ const TypeStep = v.object({
  */
 const KeyStep = v.object({
 	action: v.literal('key'),
-	/** Keystroke to send. A single character or a VHS key name. */
-	command: v.string(),
+	/** Keystroke to send. A single character or a VHS key name. Must not contain `"`. */
+	command: noDoubleQuotes,
 	narration,
 	narrationOffset,
 	pause,
@@ -146,8 +158,8 @@ const ChapterStep = v.object({
  */
 const NarrateStep = v.object({
 	action: v.literal('narrate'),
-	/** Shell commands to type and execute during the narration. */
-	commands: v.pipe(v.array(v.string()), v.minLength(1)),
+	/** Shell commands to type and execute during the narration. Must not contain `"`. */
+	commands: v.pipe(v.array(noDoubleQuotes), v.minLength(1)),
 	/** Narration text — required for `narrate` steps. */
 	narration: v.string(),
 	narrationOffset,

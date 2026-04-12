@@ -12,16 +12,24 @@
 /**
  * Escapes characters with special meaning inside a VHS `Type "..."` argument.
  *
- * VHS interprets `\`, `"`, and `` ` `` specially within double-quoted strings
- * passed to the `Type` directive. Backslashes are escaped first.
- * @param command - Raw shell command string to escape.
+ * VHS types characters verbatim — it does not interpret escape sequences like
+ * `\\` as a single backslash. The only character that needs escaping is the
+ * backtick: VHS treats `` ` `` as a subcommand delimiter, so `` \` `` is used
+ * to type a literal backtick.
+ *
+ * Double quotes (`"`) cannot appear in `Type "..."` strings — VHS has no escape
+ * sequence for them and terminates the string at the first unescaped `"`. Commands
+ * containing double quotes are rejected at the schema validation stage; this
+ * function will never receive them.
+ *
+ * Backslashes do not need escaping: VHS types them as-is. A `\n` in a command
+ * is typed as `\n` (backslash + n), which is what `printf` and similar tools
+ * expect for their escape sequences.
+ * @param command - Raw shell command string to escape. Must not contain `"`.
  * @returns The escaped string, safe to embed in `Type "..."`.
  */
 export function escapeVhs(command: string): string {
-	return command
-		.replace(/\\/g, '\\\\')
-		.replace(/"/g, '\\"')
-		.replace(/`/g, '\\`');
+	return command.replace(/`/g, '\\`');
 }
 
 /**
