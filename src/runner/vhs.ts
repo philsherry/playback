@@ -122,7 +122,7 @@ function spawnVhs(tapeFile: string, cwd: string): Promise<void> {
 		const child = spawn('vhs', [tapeFile], {
 			cwd,
 			env,
-			stdio: ['inherit', 'pipe', 'pipe'],
+			stdio: ['ignore', 'pipe', 'pipe'],
 		});
 
 		child.stdout?.on('data', (chunk: Buffer) => {

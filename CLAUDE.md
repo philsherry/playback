@@ -55,3 +55,4 @@ When something fails again and again, when the user has to re-explain or tell yo
 - `test:smoke` runs built `dist/cli.js` against real tapes; `tsx` masks ESM-only bugs.
 - VHS `Type` types characters verbatim — `\\` is two backslashes, not one. Don't escape `\` in `escapeVhs`.
 - VHS `Type "..."` has no escape for `"` — schema rejects commands containing double quotes.
+- `release:check` tape guard skips patch releases (`x.y.Z > 0`); only minor/major need a release video.

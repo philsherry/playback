@@ -4,6 +4,13 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-04-12
+
+### Fixed
+
+- Poster extraction no longer crashes the pipeline when `ffmpeg`'s `select` filter finds no matching frames. `ffmpeg` exits 0 in that case but produces a missing or zero-byte file; `generateCard` would then fail with exit code 254 trying to open it. The pipeline now checks that the extracted poster exists and has content before proceeding to card generation, and skips both silently if it does not
+- Added test coverage for `runFfmpeg` poster/card guard: missing file, zero-byte file, valid file, explicit `posterSourceFile`, and no-poster-at-all cases
+
 ## [1.2.0] - 2026-04-12
 
 ### Added
@@ -14,6 +21,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - `cli.ts` refactored into a pure command dispatcher — tape pipeline logic extracted to `src/commands/tape.ts`, playlist logic to `src/commands/playlist.ts`
 - `clean` script uses `rimraf` instead of `rm -rf` for cross-platform compatibility
+
 
 ## [1.1.0] - 2026-04-11
 
@@ -123,6 +131,8 @@ post-production timing adjustments, and a full set of studio example tapes.
 - **Timing tools** — `--audit` prints a timing comparison table after synthesis, `--audit-fix` writes corrected pauses to `tape.yaml`, `--debug-overlay` burns command labels into the video
 - **202 tests** — TypeScript (`vitest`) and Go across parser, schemas, generators, extractors, utilities, captions, workspace, metadata, timeline, and TUI
 
+[1.2.1]: https://github.com/philsherry/playback/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/philsherry/playback/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/philsherry/playback/compare/v1.0.6...v1.1.0
 [1.0.6]: https://github.com/philsherry/playback/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/philsherry/playback/compare/v1.0.4...v1.0.5

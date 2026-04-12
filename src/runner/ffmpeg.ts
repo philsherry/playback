@@ -1,3 +1,4 @@
+import { statSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
 import {
@@ -62,7 +63,7 @@ function isWarningLine(line: string): boolean {
 function spawnFfmpeg(args: string[]): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const child = spawn(`${FFMPEG_FULL_BIN}/ffmpeg`, ['-y', ...args], {
-			stdio: ['inherit', 'pipe', 'pipe'],
+			stdio: ['ignore', 'pipe', 'pipe'],
 		});
 
 		const verbose = isVerbose();
@@ -535,7 +536,16 @@ export async function runFfmpeg(
 		resolvedPoster = posterSourceFile;
 	} else if (posterTime !== null) {
 		await extractPoster(mp4File, posterFile, posterTime);
-		resolvedPoster = posterFile;
+		// ffmpeg exits 0 even when the select filter finds no matching frames,
+		// producing a missing or zero-byte file. Only use the poster if it exists
+		// and has content; otherwise skip card generation silently.
+		try {
+			if (statSync(posterFile).size > 0) {
+				resolvedPoster = posterFile;
+			}
+		} catch {
+			// file was not created — no poster
+		}
 	}
 
 	if (resolvedPoster !== null) {
