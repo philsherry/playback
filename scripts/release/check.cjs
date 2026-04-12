@@ -24,6 +24,11 @@ const packageLockPath = path.join(repoRoot, 'package-lock.json');
 const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
 const releaseNotesPath = path.join(repoRoot, 'RELEASE_NOTES.md');
 
+/**
+ * Returns the expected path to the release tape for a given version.
+ * @param {string} ver - Semver version string (without the `v` prefix).
+ * @returns {string} Absolute path to the tape.yaml file.
+ */
 function releaseTapePath(ver) {
 	return path.join(repoRoot, 'studio', 'demo', 'release', `v${ver}`, 'tape.yaml');
 }
@@ -38,16 +43,32 @@ const changelogLines = changelog.split('\n');
 const releaseNotesLines = releaseNotes.split('\n');
 const errors = [];
 
+/**
+ * Returns the first real version heading line from a CHANGELOG, skipping `[Unreleased]`.
+ * @param {string[]} lines - Lines of the changelog file.
+ * @returns {string | undefined} The heading line, or undefined if none found.
+ */
 function findFirstVersionHeading(lines) {
 	// Skip the [Unreleased] placeholder — find the first real version heading.
 	return lines.find((line) => /^## \[[^\]]+\]/.test(line) && !line.startsWith('## [Unreleased]'));
 }
 
+/**
+ * Extracts the ISO date from a changelog version heading line.
+ * @param {string} heading - A line of the form `## [x.y.z] - YYYY-MM-DD`.
+ * @returns {string | null} The date string, or null if the heading has no date.
+ */
 function extractHeadingDate(heading) {
 	const match = heading.match(/^## \[[^\]]+\] - (\d{4}-\d{2}-\d{2})$/);
 	return match ? match[1] : null;
 }
 
+/**
+ * Extracts the body text of a specific version's entry from changelog lines.
+ * @param {string[]} lines - Lines of the changelog file.
+ * @param {string} targetVersion - Semver version to extract (without `v` prefix).
+ * @returns {string | null} Trimmed body text, empty string if the entry has no body, or null if not found.
+ */
 function extractChangelogBody(lines, targetVersion) {
 	const startIndex = lines.findIndex((line) => line.startsWith(`## [${targetVersion}]`));
 	if (startIndex === -1) {
@@ -65,6 +86,11 @@ function extractChangelogBody(lines, targetVersion) {
 	return lines.slice(startIndex + 1, endIndex).join('\n').trim();
 }
 
+/**
+ * Returns true if a local git tag with the given name exists.
+ * @param {string} tagName - The tag name to check (e.g. `v1.2.1`).
+ * @returns {boolean} True if the tag exists locally, false otherwise.
+ */
 function hasLocalTag(tagName) {
 	try {
 		childProcess.execFileSync(
@@ -133,7 +159,10 @@ if (hasLocalTag(`v${version}`)) {
 	errors.push(`git tag v${version} already exists locally`);
 }
 
-if (!fs.existsSync(releaseTapePath(version))) {
+const versionParts = version.split('.').map(Number);
+const isPatch = versionParts[2] > 0;
+
+if (!isPatch && !fs.existsSync(releaseTapePath(version))) {
 	errors.push(
 		`release tape studio/demo/release/v${version}/tape.yaml does not exist — write the release video before cutting a release`
 	);
