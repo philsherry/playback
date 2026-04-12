@@ -60,17 +60,6 @@ describe('generateVhsTape', () => {
 			expect(result).toMatch(/Sleep \d+\.\d+s/);
 		});
 
-		it('escapes double quotes in commands', () => {
-			const tape: ParsedTape = {
-				...baseTape,
-				tape: {
-					...baseTape.tape,
-					steps: [{ action: 'type', command: 'echo "hello"' }],
-				},
-			};
-			expect(generateVhsTape(tape)).toContain('Type "echo \\"hello\\""');
-		});
-
 		it('escapes backticks in commands', () => {
 			const tape: ParsedTape = {
 				...baseTape,

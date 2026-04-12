@@ -35,6 +35,9 @@ voices.yaml
 .env
 .env.local
 
+# Git worktrees
+.worktrees/
+
 # macOS
 .DS_Store
 

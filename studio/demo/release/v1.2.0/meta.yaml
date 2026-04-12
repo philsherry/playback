@@ -1,0 +1,24 @@
+---
+description: >
+  A walkthrough of the two headline changes in playback 1.2.0: the
+  playlist subcommand for batch-building all tapes in a project, and
+  the CLI refactor that moved the tape pipeline into its own module.
+episode: 4
+locale: en-GB
+poster: 5
+series: demo
+tags:
+  - cli
+  - demo
+  - playlist
+  - refactor
+title: "What's new in playback 1.2.0"
+version: "1.2.0"
+vhsCwd: "."
+vhs:
+  fontSize: 14
+  height: 720
+  theme: '{"name":"CatppuccinMocha","background":"#1e1e2e","foreground":"#cdd6f4","cursor":"#f5e0dc","black":"#45475a","red":"#f38ba8","green":"#a6e3a1","yellow":"#f9e2af","blue":"#89b4fa","magenta":"#f5c2e7","cyan":"#94e2d5","white":"#bac2de","brightBlack":"#585b70","brightRed":"#f38ba8","brightGreen":"#a6e3a1","brightYellow":"#f9e2af","brightBlue":"#89b4fa","brightMagenta":"#f5c2e7","brightCyan":"#94e2d5","brightWhite":"#a6adc8"}'
+  typingSpeed: "75ms"
+voices:
+  - northern_english_male

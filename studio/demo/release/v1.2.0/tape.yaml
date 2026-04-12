@@ -1,0 +1,82 @@
+---
+title: "What's new in playback 1.2.0"
+output: studio/demo/release/v1.2.0
+steps:
+  # Brief pause for the shell prompt to settle.
+  - action: comment
+    pause: 0.5
+
+  # Intro — set the stage.
+  - action: narrate
+    narration: >
+      Playback 1.2.0 adds a playlist subcommand for batch-building all
+      tapes in a project, and refactors the CLI into a clean command
+      dispatcher.
+    commands:
+      - node scripts/release/release-notes.cjs
+    pause: 1
+
+  # ── Section 1: Batch builds with playlist ────────────────────────────────
+
+  - action: narrate
+    narration: >
+      The playlist subcommand finds every tape in your project and
+      builds them in order.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs 1
+    pause: 1
+
+  # Show tape discovery — what playlist would find.
+  - action: type
+    command: find studio -name tape.yaml | sort
+    pause: 0.5
+
+  - action: run
+    narration: >
+      Playlist discovers every tape.yaml under the target directory
+      recursively. Here it finds five: two demo tapes, two examples,
+      and the archived 1.1.0 release tape. Each one runs in order —
+      playlist stops at the first failure so you're not waiting
+      through a broken queue.
+    pause: 0.5
+
+  # Show the three invocation forms via the release notes code block.
+  - action: narrate
+    narration: >
+      Pass --tapes-dir to target any directory, or forward flags to
+      every tape invocation with a double dash.
+    commands:
+      - clear
+      - printf $'playback playlist\nplayback playlist --tapes-dir tapes/\nplayback playlist -- --vhs-only\n'
+    pause: 2
+
+  # ── Section 2: CLI dispatcher refactor ───────────────────────────────────
+
+  - action: narrate
+    narration: >
+      The CLI is now a thin dispatcher. Tape pipeline logic has moved
+      out of cli.ts into its own module.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs 2
+    pause: 1
+
+  - action: type
+    command: ls src/commands/
+    pause: 0.5
+
+  - action: run
+    narration: >
+      tape.ts and playlist.ts each own their own logic. cli.ts is down
+      to two hundred and forty nine lines — half what it was. Adding a
+      new subcommand means adding a file, not editing the dispatcher.
+    pause: 0.5
+
+  # ── Outro ─────────────────────────────────────────────────────────────────
+
+  - action: comment
+    narration: >-
+      That's playback 1.2.0 — batch builds with playlist, and a cleaner
+      CLI foundation.
+    pause: 1

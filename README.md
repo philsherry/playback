@@ -1,5 +1,7 @@
 # Playback
 
+![Playback Open Graph social preview](docs/playback-og-image.png)
+
 Turns YAML scripts into narrated, captioned terminal videos — then lets you fine-tune the timing in a post-production editor. One file drives both the recording pipeline and the editing TUI.
 
 ## How it works

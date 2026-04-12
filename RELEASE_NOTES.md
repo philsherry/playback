@@ -1,30 +1,30 @@
-# Release notes — v1.1.0
+# Release notes — v1.2.0
 
-## Structured logging, CLI theming, and XDG config
+## Playlist command and CLI refactor
 
-Playback 1.1.0 ships three connected features: structured logging,
-configurable themes, and an XDG config that works across all your projects.
+Playback 1.2.0 adds a `playlist` subcommand for batch-building all tapes in a
+project consecutively, and refactors `cli.ts` into a clean command dispatcher.
 
-### Structured logging
+### Batch builds with `playback playlist`
 
-consola-backed logger with three verbosity levels: default (info),
---quiet (warnings and errors only), and --verbose (full subprocess output).
-The pipeline captures and filters ffmpeg stderr; only actionable warnings surface.
+Run `playback playlist` from any project that uses `playback-cli` as a dependency
+to build every tape in `tapesDir` in order. The command reads `tapesDir` from
+`playback.config.ts` automatically — no extra setup required.
 
-### CLI theming
+Pass `--tapes-dir <path>` to override the directory, or forward flags to every
+tape invocation:
 
-Eleven built-in colour themes: Tokyo Night (four variants), Catppuccin
-(four flavours), Dracula, and high-contrast WCAG AAA. Set the theme in
-your XDG config, or drop a theme.yaml into a project to override locally.
+```sh
+playback playlist                        # uses tapesDir from playback.config.ts
+playback playlist --tapes-dir tapes/     # explicit path
+playback playlist -- --vhs-only          # record terminals only, skip audio
+```
 
-### XDG config
+Builds stop at the first failure so missing prerequisites do not produce a long
+stream of duplicate errors.
 
-~/.config/playback/config.yaml applies across all your projects. Set your
-theme, log level, and default voices in one place. The TUI reads the same
-file to pick its colour theme.
+### CLI dispatcher refactor
 
-### XDG voices catalogue
-
-~/.config/playback/voices.yaml is the user-level base catalogue, merged
-with an optional per-project voices.yaml. Run npm run setup to bootstrap
-the catalogue and download model files.
+The tape pipeline logic moves from `cli.ts` into `src/commands/tape.ts`.
+`cli.ts` is now a thin dispatcher — argument parsing and routing only.
+No behaviour changes; this makes the CLI straightforward to extend.

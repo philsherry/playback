@@ -7,27 +7,18 @@ describe('escapeVhs', () => {
 		expect(escapeVhs('npm install')).toBe('npm install');
 	});
 
-	it('escapes backslashes', () => {
-		expect(escapeVhs('echo C:\\Windows')).toBe('echo C:\\\\Windows');
-	});
-
-	it('escapes double quotes', () => {
-		expect(escapeVhs('echo "hello"')).toBe('echo \\"hello\\"');
-	});
-
 	it('escapes backticks', () => {
 		expect(escapeVhs('echo `date`')).toBe('echo \\`date\\`');
 	});
 
-	it('escapes backslashes before double quotes to avoid double-escaping', () => {
-		// Input: \" (backslash then double-quote)
-		// After backslash pass:  \\\"  (two backslashes + double-quote)
-		// After double-quote pass: \\\\"  (two backslashes + escaped double-quote)
-		expect(escapeVhs('\\"')).toBe('\\\\\\"');
+	it('passes backslashes through unchanged', () => {
+		// VHS types characters verbatim — \n stays \n, which printf interprets correctly.
+		expect(escapeVhs('printf \'hello\\nworld\\n\'')).toBe('printf \'hello\\nworld\\n\'');
 	});
 
-	it('handles all three special characters in one command', () => {
-		expect(escapeVhs('echo `\\"hi\\"`')).toBe('echo \\`\\\\\\"hi\\\\\\"\\`');
+	it('escapes backtick when preceded by a backslash', () => {
+		// The backslash is left alone; only the backtick gets the \` treatment.
+		expect(escapeVhs('echo \\`date\\`')).toBe('echo \\\\`date\\\\`');
 	});
 });
 

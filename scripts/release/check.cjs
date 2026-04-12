@@ -24,6 +24,10 @@ const packageLockPath = path.join(repoRoot, 'package-lock.json');
 const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
 const releaseNotesPath = path.join(repoRoot, 'RELEASE_NOTES.md');
 
+function releaseTapePath(ver) {
+	return path.join(repoRoot, 'studio', 'demo', 'release', `v${ver}`, 'tape.yaml');
+}
+
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const packageLock = JSON.parse(fs.readFileSync(packageLockPath, 'utf8'));
 const changelog = fs.readFileSync(changelogPath, 'utf8');
@@ -127,6 +131,12 @@ if (!releaseNotesBody) {
 
 if (hasLocalTag(`v${version}`)) {
 	errors.push(`git tag v${version} already exists locally`);
+}
+
+if (!fs.existsSync(releaseTapePath(version))) {
+	errors.push(
+		`release tape studio/demo/release/v${version}/tape.yaml does not exist — write the release video before cutting a release`
+	);
 }
 
 if (errors.length > 0) {

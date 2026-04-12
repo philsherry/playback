@@ -35,6 +35,15 @@ describe('StepSchema', () => {
 			});
 			expect(result.success).toBe(false);
 		});
+
+		it('rejects a command containing double quotes', () => {
+			// VHS Type "..." has no escape sequence for " — schema catches this early.
+			const result = v.safeParse(StepSchema, {
+				action: 'type',
+				command: 'find . -name "*.ts"',
+			});
+			expect(result.success).toBe(false);
+		});
 	});
 
 	describe('run step', () => {
@@ -62,6 +71,53 @@ describe('StepSchema', () => {
 		it('accepts a zero pause', () => {
 			const result = v.safeParse(StepSchema, { action: 'comment', pause: 0 });
 			expect(result.success).toBe(true);
+		});
+	});
+
+	describe('key step', () => {
+		it('accepts a single character keystroke', () => {
+			const result = v.safeParse(StepSchema, { action: 'key', command: 'j' });
+			expect(result.success).toBe(true);
+		});
+
+		it('accepts a VHS special key name', () => {
+			const result = v.safeParse(StepSchema, { action: 'key', command: 'Escape' });
+			expect(result.success).toBe(true);
+		});
+
+		it('rejects a keystroke containing double quotes', () => {
+			const result = v.safeParse(StepSchema, { action: 'key', command: '"' });
+			expect(result.success).toBe(false);
+		});
+	});
+
+	describe('narrate step', () => {
+		it('accepts a narrate step with narration and commands', () => {
+			const result = v.safeParse(StepSchema, {
+				action: 'narrate',
+				commands: ['ls', 'pwd'],
+				narration: 'Hello.',
+			});
+			expect(result.success).toBe(true);
+		});
+
+		it('rejects a narrate step with an empty commands array', () => {
+			const result = v.safeParse(StepSchema, {
+				action: 'narrate',
+				commands: [],
+				narration: 'Hello.',
+			});
+			expect(result.success).toBe(false);
+		});
+
+		it('rejects a narrate command containing double quotes', () => {
+			// VHS Type "..." has no escape sequence for " — schema catches this early.
+			const result = v.safeParse(StepSchema, {
+				action: 'narrate',
+				commands: ['find . -name "*.ts"'],
+				narration: 'Hello.',
+			});
+			expect(result.success).toBe(false);
 		});
 	});
 

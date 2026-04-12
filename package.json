@@ -28,6 +28,7 @@
 		"markdownlint-cli": "^0.48.0",
 		"npm-run-all2": "^8.0.4",
 		"prettier": "^3.8.1",
+		"rimraf": "^6.1.3",
 		"tsup": "^8.5.1",
 		"tsx": "^4.21.0",
 		"typescript": "^6.0.2",
@@ -54,7 +55,7 @@
 	"scripts": {
 		"build": "tsup && npm run build:tui",
 		"build:tui": "cd tui && go build -o playback-tui ./cmd/playback-tui",
-		"clean": "rm -rf tui/playback-tui",
+		"clean": "rimraf tui/playback-tui",
 		"commit": "commit",
 		"dev": "tsx src/cli.ts",
 		"format": "run-s format:ts format:tui",
@@ -80,7 +81,7 @@
 		"playback:studio:timings:accessible:fix": "tsx scripts/debug/timings.ts studio/demo/accessible --fix",
 		"playback:studio:timings:fix": "tsx scripts/debug/timings.ts studio/demo/tui --fix",
 		"playback:tape": "tsx src/cli.ts tape",
-		"playlist:build": "tsx scripts/playlist.ts",
+		"playlist:build": "tsx src/cli.ts playlist",
 		"postsetup": "npm run build",
 		"prepare": "husky || true",
 		"prepublishOnly": "tsup",
@@ -89,7 +90,7 @@
 		"release:prepare": "run-s lint test:ts test:tui typecheck test:smoke release:check",
 		"setup": "bash scripts/setup.sh",
 		"test": "run-s test:ts test:tui",
-		"test:smoke": "node dist/cli.js validate studio/example/tape && node dist/cli.js validate studio/demo/release",
+		"test:smoke": "node dist/cli.js validate studio/example/skills",
 		"test:ts": "vitest run",
 		"test:tui": "cd tui && go test ./...",
 		"test:watch": "vitest",
@@ -97,5 +98,5 @@
 		"validate": "tsx src/cli.ts validate"
 	},
 	"type": "module",
-	"version": "1.1.0"
+	"version": "1.2.0"
 }
