@@ -13,7 +13,7 @@ How to install the playback-runner agent and use it to ask questions about Playb
 1. Set up a temp project directory
 2. Run `playback init-agent` to install the agent files
 3. Confirm two agent files are created in the project
-4. Ask "How do I work this?" and see the agent respond
+4. Ask "How do I use this?" and see the agent respond
 5. Ask "Can I make a playlist?" and see what it knows
 6. Ask "Where do my tapes end up?" and get a clear answer
 7. Closing narration
