@@ -34,15 +34,15 @@ steps:
 
   # Clear before Q&A section.
   - action: type
-    command: clear
+    command: printf '\033c'
     pause: 0.3
 
   - action: run
     pause: 0.2
 
-  # Beat 4: Q1 — How do I use this?
+  # Beat 4: Q1 — How do I work this?
   - action: type
-    command: $DEMO/chat.sh 'How do I use this?'
+    command: $DEMO/chat.sh 'How do I work this?'
     narration: >
       The first question every new user asks.
     pause: 3
