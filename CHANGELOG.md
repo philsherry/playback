@@ -4,6 +4,14 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-04-13
+
+### Added
+
+- **`playback init-agent` command** — installs the `playback-runner` AI agent into any project that uses Playback. Creates `.claude/agents/playback-runner.md` (Claude Code subagent) and `.github/prompts/playback-runner.prompt.md` (GitHub Copilot agent). Use `--force` to overwrite existing files
+- **`playback-runner` agent** — a friendly, practical guide for tape authors covering the full Playback feature set: tape and meta authoring, CLI flags, voices, timing, the TUI editor, scaffolding, and playlists. Written for designers and content creators. Ships in `templates/` and is copied into the consuming project by `playback init-agent`
+- **`studio/demo/agent/`** — demo tape showing `playback init-agent` in action, with a `gum`-styled Q&A sequence
+
 ## [1.2.3] - 2026-04-13
 
 ### Fixed
@@ -171,6 +179,7 @@ post-production timing adjustments, and a full set of studio example tapes.
 - **Timing tools** — `--audit` prints a timing comparison table after synthesis, `--audit-fix` writes corrected pauses to `tape.yaml`, `--debug-overlay` burns command labels into the video
 - **202 tests** — TypeScript (`vitest`) and Go across parser, schemas, generators, extractors, utilities, captions, workspace, metadata, timeline, and TUI
 
+[1.3.0]: https://github.com/philsherry/playback/compare/v1.2.3...v1.3.0
 [1.2.3]: https://github.com/philsherry/playback/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/philsherry/playback/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/philsherry/playback/compare/v1.2.0...v1.2.1

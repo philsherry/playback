@@ -1,0 +1,65 @@
+---
+title: "playback init-agent — v1.3.0"
+output: studio/demo/release/v1.3.0
+steps:
+  # Setup — capture demo dir, create temp workspace, cd into it.
+  - action: type
+    command: "DEMO=$(pwd)/studio/demo/release/v1.3.0 && mkdir -p /tmp/playback-release && cd /tmp/playback-release"
+    pause: 0.5
+
+  - action: run
+    pause: 0.3
+
+  # Beat 1: Install the agent.
+  - action: type
+    command: playback init-agent --force
+    narration: >
+      Playback 1.3.0 ships one new command.
+    pause: 3
+
+  - action: run
+    pause: 0.5
+
+  # Clear before Q&A.
+  - action: type
+    command: printf $'\033c'
+    pause: 0.3
+
+  - action: run
+    pause: 0.2
+
+  # Beat 2: What's new?
+  - action: type
+    command: $DEMO/chat.sh $'What\'s new in 1.3.0?'
+    narration: >
+      playback-runner presents its own release notes.
+    pause: 3
+
+  - action: run
+    pause: 0.5
+
+  # Beat 3: What does it know?
+  - action: type
+    command: $DEMO/chat.sh 'What does playback-runner know?'
+    narration: >
+      It knows the whole feature set.
+    pause: 3
+
+  - action: run
+    pause: 0.5
+
+  # Beat 4: Who is it for?
+  - action: type
+    command: $DEMO/chat.sh 'Who is it for?'
+    narration: >
+      And it knows its audience.
+    pause: 3
+
+  - action: run
+    pause: 1
+
+  # Out.
+  - action: comment
+    narration: >-
+      playback-runner. On a film set, the runner does whatever is needed —
+      no ego, no credits.

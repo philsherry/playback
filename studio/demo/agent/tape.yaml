@@ -1,0 +1,77 @@
+---
+title: "Meet playback-runner"
+output: studio/demo/agent
+steps:
+  # Beat 1: Setup — capture project root, create temp dir, cd into it.
+  - action: type
+    command: "DEMO=$(pwd)/studio/demo/agent && mkdir -p /tmp/playback-demo && cd /tmp/playback-demo"
+    pause: 0.5
+
+  - action: run
+    pause: 0.3
+
+  # Beat 2: Install the agent.
+  - action: type
+    command: playback init-agent --force
+    narration: >
+      playback init-agent installs the playback-runner agent into your
+      project. One command, and your team can start asking questions
+      straight away.
+    pause: 3
+
+  - action: run
+    pause: 0.5
+
+  # Beat 3: Confirm the files were created.
+  - action: type
+    command: ls .claude/agents .github/prompts
+    narration: >
+      One command. Two files. One for Claude Code, one for Copilot.
+    pause: 3
+
+  - action: run
+    pause: 0.5
+
+  # Clear before Q&A section.
+  - action: type
+    command: printf $'\033c'
+    pause: 0.3
+
+  - action: run
+    pause: 0.2
+
+  # Beat 4: Q1 — How do I work this?
+  - action: type
+    command: $DEMO/chat.sh 'How do I work this?'
+    narration: >
+      The first question every new user asks.
+    pause: 3
+
+  - action: run
+    pause: 0.5
+
+  # Beat 5: Q2 — Can I make a playlist?
+  - action: type
+    command: $DEMO/chat.sh 'Can I make a playlist?'
+    narration: >
+      It knows about features you might not have found yet.
+    pause: 3
+
+  - action: run
+    pause: 0.5
+
+  # Beat 6: Q3 — Where do my tapes end up?
+  - action: type
+    command: $DEMO/chat.sh 'Where do my tapes end up?'
+    narration: >
+      And the practical questions that come up every time.
+    pause: 3
+
+  - action: run
+    pause: 1
+
+  # Beat 7: Out.
+  - action: comment
+    narration: >-
+      playback-runner. One command to install it, and your whole team
+      can get answers without leaving the terminal.

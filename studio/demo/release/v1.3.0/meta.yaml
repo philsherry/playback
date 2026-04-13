@@ -1,0 +1,17 @@
+---
+description: >
+  Playback 1.3.0 ships playback init-agent — one command that installs the
+  playback-runner AI agent into any project, for Claude Code and Copilot.
+episode: 1
+locale: en-GB
+poster: 30
+series: release
+tags:
+  - agent
+  - init-agent
+  - release
+title: "playback init-agent — v1.3.0"
+version: "1.3.0"
+vhsCwd: "."
+voices:
+  - northern_english_male

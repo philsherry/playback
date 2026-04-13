@@ -1,0 +1,18 @@
+---
+description: >
+  Install the playback-runner agent in one command and start asking
+  questions about Playback — from writing your first tape to building
+  a playlist.
+episode: 3
+locale: en-GB
+poster: 30
+series: demo
+tags:
+  - agent
+  - demo
+  - init-agent
+title: "Meet playback-runner"
+version: "1.0.0"
+vhsCwd: "."
+voices:
+  - northern_english_male
