@@ -46,7 +46,7 @@ If it seems a bit out of sync, use the `playback-tui`.
 
 ### `playback-tui`
 
-Run the `playback-cli` command to edit the TUI demo.
+Run the `playback-tui` command to edit the TUI demo.
 
 ```sh
 npm run playback:edit -- studio/demo/tui
@@ -166,7 +166,7 @@ voices:
 
 **Poster image priority:** `poster.png` in the tape directory → `poster` frame number in `meta.yaml` → no poster.
 
-**Voices:** `northern_english_male` by default. Specify `voices` to override or generate one output per voice. Both voices are en-GB `piper-tts` models downloaded by `npm run setup`.
+**Voices:** `northern_english_male` by default. Specify `voices` to override or generate one output per voice. All voices are en-GB `piper-tts` models downloaded by `npm run setup`.
 
 ### Output
 
@@ -183,8 +183,9 @@ blockbuster/
         tape.vtt         # WebVTT captions (primary)
         tape.srt         # SRT captions (fallback)
         tape.ass         # ASS captions (used internally for burn-in)
-        tape.png         # poster image (if generated)
-        chapters.txt     # FFMETADATA1 chapter markers (for benchmarking)
+        tape.png         # poster image (if generated, 1280×720)
+        tape.card.png    # card image (if generated, 640×360)
+        chapters.txt     # FFMETADATA1 chapter markers (for video players)
         script.txt       # narration script (for reference)
         segments/        # per-voice synthesised audio segments
 ```

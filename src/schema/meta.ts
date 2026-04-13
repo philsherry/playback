@@ -81,8 +81,8 @@ export const MetaSchema = v.object({
 		fontSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
 		/** Recording height in pixels. Default: 660 (TERMINAL_HEIGHT). */
 		height: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
-		/** Shell for the VHS terminal session (e.g. `"bash"`). Default: `"zsh"`. */
-		shell: v.optional(v.string()),
+		/** Shell for the VHS terminal session (e.g. `"bash"`). Default: `"zsh"`. Must not contain double-quote characters. */
+		shell: v.optional(v.pipe(v.string(), v.check((s) => !s.includes('"'), 'vhs.shell cannot contain double-quote characters — use a shell path without quotes'))),
 		/** JSON theme string for VHS `Set Theme`. Default: Amber theme. */
 		theme: v.optional(v.string()),
 		/** Typing speed (e.g. `"50ms"`). Default: `"75ms"`. */

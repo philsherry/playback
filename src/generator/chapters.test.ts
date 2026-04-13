@@ -159,6 +159,70 @@ describe('generateChapters', () => {
 		});
 	});
 
+	describe('FFMETADATA1 value escaping', () => {
+		it('escapes = in explicit chapter titles', () => {
+			const steps: Step[] = [{ action: 'chapter', title: 'KEY=value' }];
+			const timeline = makeTimeline([
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+			], 1);
+			generateChapters(timeline, steps, '/output');
+			expect(capturedContent()).toContain('title=KEY\\=value');
+		});
+
+		it('escapes ; in explicit chapter titles', () => {
+			const steps: Step[] = [{ action: 'chapter', title: 'Intro; Recap' }];
+			const timeline = makeTimeline([
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+			], 1);
+			generateChapters(timeline, steps, '/output');
+			expect(capturedContent()).toContain('title=Intro\\; Recap');
+		});
+
+		it('escapes # in explicit chapter titles', () => {
+			const steps: Step[] = [{ action: 'chapter', title: 'Chapter #1' }];
+			const timeline = makeTimeline([
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+			], 1);
+			generateChapters(timeline, steps, '/output');
+			expect(capturedContent()).toContain('title=Chapter \\#1');
+		});
+
+		it('escapes \\ in explicit chapter titles', () => {
+			const steps: Step[] = [{ action: 'chapter', title: 'Back\\slash' }];
+			const timeline = makeTimeline([
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+			], 1);
+			generateChapters(timeline, steps, '/output');
+			expect(capturedContent()).toContain('title=Back\\\\slash');
+		});
+
+		it('replaces newlines with spaces in explicit chapter titles', () => {
+			const steps: Step[] = [{ action: 'chapter', title: 'Line One\nLine Two' }];
+			const timeline = makeTimeline([
+				{ duration: 0, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 0 } },
+			], 1);
+			generateChapters(timeline, steps, '/output');
+			const content = capturedContent();
+			expect(content).toContain('title=Line One Line Two');
+			// The title= line itself must not contain a bare newline mid-value
+			const titleLine = content.split('\n').find((l) => l.startsWith('title='));
+			expect(titleLine).toBeDefined();
+			expect(titleLine).not.toContain('\n');
+		});
+
+		it('escapes = in auto-generated titles from shell commands', () => {
+			const steps: Step[] = [
+				{ action: 'type', command: 'KEY=value node server.js', pause: 1 },
+			];
+			const timeline = makeTimeline([
+				{ duration: 1, narration: null, startTime: 0, stepIndex: 0, vhs: { directives: [], sleepSeconds: 1 } },
+			], 1);
+			generateChapters(timeline, steps, '/output');
+			// Auto-generated title is "type: KEY=value node server.js" — = must be escaped
+			expect(capturedContent()).toContain('\\=');
+		});
+	});
+
 	describe('mixed steps', () => {
 		it('only chapter steps appear when hasExplicit is true', () => {
 			const steps: Step[] = [

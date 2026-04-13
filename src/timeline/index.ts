@@ -447,7 +447,7 @@ export function generateVhsFromTimeline(
 	lines.push(`Set BorderRadius ${TERMINAL_BORDER_RADIUS}`);
 	lines.push(`Set Margin ${TERMINAL_MARGIN}`);
 	lines.push(`Set MarginFill "${TERMINAL_MARGIN_FILL}"`);
-	lines.push(`Set Shell "${SHELL}"`);
+	lines.push(`Set Shell "${vhsOverrides?.shell ?? SHELL}"`);
 	lines.push(`Set TypingSpeed ${vhsOverrides?.typingSpeed ?? TYPING_SPEED}`);
 	lines.push('');
 

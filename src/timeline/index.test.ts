@@ -321,6 +321,22 @@ describe('generateVhsFromTimeline', () => {
 		expect(tape).not.toContain('Sleep 0.00s');
 	});
 
+	it('emits Set Shell "zsh" by default', () => {
+		const parsed = makeParsed([{ action: 'run', pause: 1 }]);
+		const tl = buildTimeline(parsed);
+		const tape = generateVhsFromTimeline(tl, parsed);
+		expect(tape).toContain('Set Shell "zsh"');
+	});
+
+	it('uses vhs.shell override when set in meta', () => {
+		const parsed = makeParsed([{ action: 'run', pause: 1 }]);
+		parsed.meta.vhs = { shell: 'bash' };
+		const tl = buildTimeline(parsed);
+		const tape = generateVhsFromTimeline(tl, parsed);
+		expect(tape).toContain('Set Shell "bash"');
+		expect(tape).not.toContain('Set Shell "zsh"');
+	});
+
 	it('uses back-filled sleep values after applyAudioDurations', () => {
 		const parsed = makeParsed([
 			{ action: 'run', narration: 'Long narration text', pause: 1 },

@@ -1,6 +1,8 @@
-# Release notes — v1.2.2
+# Release notes — v1.2.x
 
 ## Web audio output and caption improvements
+
+Version 1.2.x adds web audio output with per-voice M4A files and a browser-ready manifest, multi-voice MKV bundling with selectable audio tracks, and caption word-wrapping at sixty-five characters per line. The playlist command gains pristine-tape support, and the manifest gains an Open Graph image placeholder. Patch release 1.2.3 fixes bugs identified in Copilot code review.
 
 ### `--web` flag
 
@@ -83,3 +85,72 @@ separating it cleanly from global metadata handling.
 
 `docs/OUTPUT_FORMATS.md` documents all output modes (`default`, `--web`, `--mkv`),
 caption sizing rules, the web player sync pattern, and how to combine flags.
+
+## Patch releases
+
+Patches do not have release tapes. These notes are an addendum to the 1.2.x
+minor release above.
+
+### v1.2.1 — Poster extraction crash fix
+
+A playlist run would stop dead if any tape had a `poster` frame number in
+`meta.yaml` and `ffmpeg`'s `select` filter found no matching frame at that
+timestamp. `ffmpeg` exits 0 in that case but writes nothing (or an empty
+file), and the card-generation step would fail with exit code 254 trying to open
+it as input.
+
+The pipeline now checks that the extracted poster exists and has non-zero
+content before passing it to `generateCard`. If the check fails the poster
+and card are silently skipped — the rest of the pipeline continues.
+
+Five new tests cover the guard: missing file, zero-byte file, valid file,
+explicit `posterSourceFile` (where the guard is not consulted), and the
+no-poster-at-all case.
+
+### v1.2.2 — Web audio output and caption improvements
+
+The main feature release for this series. See the sections above for full
+details. Key additions:
+
+- **`--web` flag** — per-voice M4A audio, shared silent MP4, and `manifest.json`
+  for browser-based voice switching without re-downloading the video
+- **`--manifest-only` flag** — regenerates `manifest.json` without re-running
+  the pipeline
+- **Multi-voice MKV bundling** — one MKV with selectable audio and subtitle
+  tracks per voice
+- **Caption word-wrapping** — ≤ 65 characters per line across VTT, SRT, and ASS
+- **Open Graph image placeholder** — `og` field in manifest, `null` until a
+  generation strategy lands
+- **`tape.pristine.yaml` support** — playlist copies the pristine file to
+  `tape.yaml` before recording when no `tape.yaml` is present
+- **MKV container metadata fix** — `-map_metadata` replaced with `-map_chapters`
+  to stop chapter embedding from clearing the explicit metadata flags
+- **`docs/OUTPUT_FORMATS.md`** — reference for all output modes, caption sizing
+  rules, and flag combinations
+
+### v1.2.3 — Copilot review fixes (PRs #7, #8, #13)
+
+- **`vhs.shell` schema validation** — `meta.yaml` now rejects shell values
+  containing `"` characters; VHS `Set Shell "..."` has no escape sequence for
+  them and would silently produce an invalid `.tape` file
+- **Shell override in `generateVhsFromTimeline`** — the timeline VHS generator
+  hard-coded `Set Shell "zsh"` regardless of `meta.yaml`'s `vhs.shell`
+  override, diverging from `generateVhsTape`
+- **Chapter marker priority in TUI** — the `§` chapter marker overwrote the
+  `▸` cursor and `!` overlap markers for selected or flagged chapter steps;
+  cursor and overlap markers now take precedence
+- **`scaffold.ts` YAML frontmatter quoting** — titles containing `:` or `#`
+  appeared unquoted in output, producing invalid YAML
+- **FFMETADATA1 chapter title escaping** — `=`, `;`, `#`, `\`, and newlines
+  in chapter titles went unescaped; ffmpeg rejects files with bare `=` or `;` in values
+- **Redundant conditional in `scaffold.ts`** removed
+- **`--captions-only`** no longer records the terminal or runs the web
+  pre-loop video/GIF/poster encoding — `runVhs` is now guarded by
+  `!captionsOnly` throughout
+- **`--web` poster** is now copied into `webOutputDir` with the card generated
+  from the copy, so the manifest is self-contained
+- **Multi-voice non-web GIF** is now named `slug.gif` rather than
+  `slug.<voice>.gif`
+- **`buildM4aArgs`** now throws a descriptive error on empty segments instead
+  of emitting an invalid `amix=inputs=0` ffmpeg filter
+- Test coverage added for each fix

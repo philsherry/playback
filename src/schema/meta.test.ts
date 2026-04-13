@@ -94,4 +94,32 @@ describe('MetaSchema', () => {
 			expect(result.success).toBe(false);
 		});
 	});
+
+	describe('vhs overrides', () => {
+		it('accepts a plain shell name', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { shell: 'bash' },
+			});
+			expect(result.success).toBe(true);
+		});
+
+		it('accepts a shell path', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { shell: '/usr/local/bin/fish' },
+			});
+			expect(result.success).toBe(true);
+		});
+
+		it('rejects vhs.shell containing double-quote characters', () => {
+			// VHS Set Shell "..." has no escape for " — the parser would terminate
+			// the string early, producing an invalid .tape file.
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { shell: 'bash -lc "exec zsh"' },
+			});
+			expect(result.success).toBe(false);
+		});
+	});
 });

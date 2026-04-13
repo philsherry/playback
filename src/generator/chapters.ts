@@ -17,6 +17,24 @@ import type { Step } from '../schema/tape';
 const MAX_TITLE_LENGTH = 80;
 
 /**
+ * Escapes a string for safe embedding as an FFMETADATA1 value.
+ *
+ * The FFMETADATA1 format treats `=`, `;`, `#`, and `\` as special characters
+ * inside values. Newlines are also replaced with a space since multi-line
+ * chapter titles are not supported.
+ * @param value - Raw string to escape.
+ * @returns Escaped string safe for use in an FFMETADATA1 `key=value` line.
+ */
+function escapeMetadataValue(value: string): string {
+	return value
+		.replace(/\\/g, '\\\\')
+		.replace(/=/g, '\\=')
+		.replace(/;/g, '\\;')
+		.replace(/#/g, '\\#')
+		.replace(/\n/g, ' ');
+}
+
+/**
  * Builds a human-readable chapter title for a timeline event.
  *
  * Uses the narration text (truncated) if present, otherwise falls back
@@ -104,7 +122,7 @@ export function generateChapters(
 			lines.push('TIMEBASE=1/1000');
 			lines.push(`START=${startMs}`);
 			lines.push(`END=${endMs}`);
-			lines.push(`title=${title}`);
+			lines.push(`title=${escapeMetadataValue(title)}`);
 		}
 	} else {
 		for (const event of timeline.events) {
@@ -118,7 +136,7 @@ export function generateChapters(
 			lines.push('TIMEBASE=1/1000');
 			lines.push(`START=${startMs}`);
 			lines.push(`END=${endMs}`);
-			lines.push(`title=${title}`);
+			lines.push(`title=${escapeMetadataValue(title)}`);
 		}
 	}
 

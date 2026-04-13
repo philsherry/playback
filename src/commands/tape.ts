@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { parseTape } from '../parser/index';
 import {
@@ -260,8 +260,11 @@ export async function runTape(options: TapeCommandOptions): Promise<void> {
 
 	const overlayFilter = debugOverlayFlag ? buildOverlayFilter(timeline) : undefined;
 
-	logInfo('  Recording terminal…');
-	const { rawMp4 } = await runVhs(parsed, DIST_DIR, workspace);
+	let rawMp4 = '';
+	if (!captionsOnly) {
+		logInfo('  Recording terminal…');
+		({ rawMp4 } = await runVhs(parsed, DIST_DIR, workspace));
+	}
 
 	const voiceOutputs: VoiceOutput[] = [];
 	const mkvTracks: MultiVoiceTrack[] = [];
@@ -277,28 +280,37 @@ export async function runTape(options: TapeCommandOptions): Promise<void> {
 	if (webEnabled) {
 		// ── Web path: shared padded video + per-voice M4A ──────────────────────
 		mkdirSync(webOutputDir, { recursive: true });
-		const silentMp4 = join(webOutputDir, `${outputSlug}.silent.mp4`);
-		const sharedGif = join(webOutputDir, `${outputSlug}.gif`);
 
-		logInfo('  Encoding shared video…');
-		await padVideoOnly(rawMp4, silentMp4);
-		logSuccess(`  ✓ ${silentMp4}`);
+		if (!captionsOnly) {
+			const silentMp4 = join(webOutputDir, `${outputSlug}.silent.mp4`);
+			const sharedGif = join(webOutputDir, `${outputSlug}.gif`);
 
-		logInfo('  Generating GIF…');
-		await generateGif(silentMp4, sharedGif);
-		logSuccess(`  ✓ ${sharedGif}`);
-		sharedGifFile = sharedGif;
+			logInfo('  Encoding shared video…');
+			await padVideoOnly(rawMp4, silentMp4);
+			logSuccess(`  ✓ ${silentMp4}`);
 
-		// Poster and card from shared video.
-		if (parsed.posterFile) {
-			lastPosterFile = parsed.posterFile;
-		} else if (posterTime !== null) {
-			const posterFile = join(webOutputDir, `${outputSlug}.poster.png`);
-			const cardFile = join(webOutputDir, `${outputSlug}.card.png`);
-			await extractPosterFromMp4(silentMp4, posterFile, posterTime);
-			await generateCardFromPoster(posterFile, cardFile);
-			lastPosterFile = posterFile;
-			lastCardFile = cardFile;
+			logInfo('  Generating GIF…');
+			await generateGif(silentMp4, sharedGif);
+			logSuccess(`  ✓ ${sharedGif}`);
+			sharedGifFile = sharedGif;
+
+			// Poster and card: copy source poster into webOutputDir so the manifest
+			// stays self-contained. If no source poster, extract from the silent video.
+			if (parsed.posterFile) {
+				const posterFile = join(webOutputDir, `${outputSlug}.poster.png`);
+				const cardFile = join(webOutputDir, `${outputSlug}.card.png`);
+				copyFileSync(parsed.posterFile, posterFile);
+				await generateCardFromPoster(posterFile, cardFile);
+				lastPosterFile = posterFile;
+				lastCardFile = cardFile;
+			} else if (posterTime !== null) {
+				const posterFile = join(webOutputDir, `${outputSlug}.poster.png`);
+				const cardFile = join(webOutputDir, `${outputSlug}.card.png`);
+				await extractPosterFromMp4(silentMp4, posterFile, posterTime);
+				await generateCardFromPoster(posterFile, cardFile);
+				lastPosterFile = posterFile;
+				lastCardFile = cardFile;
+			}
 		}
 
 		for (const voice of voices) {
@@ -390,8 +402,8 @@ export async function runTape(options: TapeCommandOptions): Promise<void> {
 				videoMetadata,
 				overlayFilter || undefined,
 				chaptersResult.hasExplicit ? chaptersResult.path : undefined,
-				false,              // mkv handled separately below
-				!isFirstVoice       // skipGif for all but the first voice
+				false,                       // mkv handled separately below
+				multiVoice || !isFirstVoice  // skipGif in multi-voice; GIF generated once below
 			);
 
 			logSuccess(`  ✓ ${result.mp4File}`);
@@ -410,6 +422,18 @@ export async function runTape(options: TapeCommandOptions): Promise<void> {
 			if (mkvFlag) {
 				mkvTracks.push({ captions, segments: synthesised, voice });
 			}
+		}
+
+		// In multi-voice mode runFfmpeg skips GIF for all voices (to avoid naming it
+		// after the primary voice). Generate one voice-agnostic GIF from the primary
+		// voice MP4 after all voices have been stitched.
+		if (multiVoice) {
+			const primaryMp4 = join(outputDir, `${outputSlug}.${primaryVoice}.mp4`);
+			const gifFile = join(outputDir, `${outputSlug}.gif`);
+			logInfo('  Generating GIF…');
+			await generateGif(primaryMp4, gifFile);
+			logSuccess(`  ✓ ${gifFile}`);
+			sharedGifFile = gifFile;
 		}
 	}
 
