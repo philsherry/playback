@@ -32,6 +32,14 @@ steps:
   - action: run
     pause: 0.5
 
+  # Clear before Q&A section.
+  - action: type
+    command: clear
+    pause: 0.3
+
+  - action: run
+    pause: 0.2
+
   # Beat 4: Q1 — How do I use this?
   - action: type
     command: $DEMO/chat.sh 'How do I use this?'
