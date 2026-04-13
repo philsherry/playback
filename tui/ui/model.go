@@ -1222,7 +1222,11 @@ func (m Model) renderStepList() string {
 				text = text[:maxLen-1] + "…"
 			}
 			narr = m.styles.Accent.Render(" " + text)
-			marker = "§ "
+			// Only use the chapter glyph when the row isn't already marked as
+			// selected (▸) or overlapping (!) — those take precedence.
+			if marker == "  " {
+				marker = "§ "
+			}
 		} else if step.Narration != "" {
 			text := step.Narration
 			maxLen := m.layout.StepListWidth - 26

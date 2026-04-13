@@ -1308,3 +1308,48 @@ func TestView_NarrationTruncation(t *testing.T) {
 		t.Error("View() should truncate long narration text, but full text appears")
 	}
 }
+
+// chapterTapeData returns a TapeData with a chapter step followed by a run step.
+func chapterTapeData() tape.TapeData {
+	pause1 := 1.0
+	return tape.TapeData{
+		Dir: "/tmp/test",
+		Tape: tape.Tape{
+			Title:  "Chapter Test",
+			Output: "test",
+			Steps: []tape.Step{
+				{Action: "chapter", Title: "Introduction"},
+				{Action: "run", Pause: &pause1},
+			},
+		},
+		Meta: tape.Meta{
+			Title:  "Chapter Test",
+			Voices: []string{"northern_english_male"},
+		},
+	}
+}
+
+func TestView_UnselectedChapterStep_ShowsChapterMarker(t *testing.T) {
+	m := readyModel(chapterTapeData())
+	// No selection — cursor is -1.
+	view := m.View()
+
+	if !strings.Contains(view, "§") {
+		t.Error("View() should show § marker for an unselected chapter step")
+	}
+}
+
+func TestView_SelectedChapterStep_ShowsCursorMarkerNotChapterMarker(t *testing.T) {
+	m := readyModel(chapterTapeData())
+	m = sendKey(m, "j") // select step 0 (the chapter step)
+	view := m.View()
+
+	// The selected row must show the cursor marker.
+	if !strings.Contains(view, "▸") {
+		t.Error("selected chapter step should show ▸ cursor marker")
+	}
+	// § must not appear — cursor marker takes precedence over chapter marker.
+	if strings.Contains(view, "§") {
+		t.Error("selected chapter step should not show § marker — cursor (▸) must take precedence")
+	}
+}

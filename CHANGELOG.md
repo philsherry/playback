@@ -4,6 +4,29 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-04-13
+
+### Fixed
+
+- **`vhs.shell` schema validation** — `meta.yaml` now rejects `vhs.shell` values containing double-quote characters; VHS `Set Shell "..."` has no escape sequence for `"` and would silently produce an invalid `.tape` file
+- **Shell override in `generateVhsFromTimeline`** — the timeline VHS generator hard-coded `Set Shell "zsh"` regardless of `meta.yaml`'s `vhs.shell` override, diverging from `generateVhsTape`; now uses `vhsOverrides?.shell ?? SHELL`
+- **Chapter marker priority in TUI step list** — the `§` chapter marker unconditionally overwrote the `▸` cursor and `!` overlap markers for selected or flagged chapter steps; cursor and overlap markers now take precedence
+- **`scaffold.ts` YAML frontmatter quoting** — episode titles containing `:`, `#`, or other YAML-special characters appeared unquoted in output, producing invalid YAML that downstream parsers would reject; titles are now double-quoted with embedded `"` escaped
+- **FFMETADATA1 chapter title escaping** — `=`, `;`, `#`, `\`, and newlines in chapter titles went unescaped; ffmpeg rejects files where values contain bare `=` or `;`. All four are now escaped per the FFMETADATA1 spec; newlines replaced with a space
+- **Redundant conditional in `scaffold.ts`** — `step.action === 'narrate' ? step.narration : step.narration` simplified to `step.narration`
+- **`--captions-only` unnecessarily recorded terminal** — `runVhs` ran unconditionally before the voice loop; `--captions-only` skipped ffmpeg inside the loop but still paid the full VHS recording cost and could overwrite existing raw recordings. Both `runVhs` and the `--web` pre-loop video/GIF/poster encoding are now guarded by `!captionsOnly`
+- **`--web` poster not copied into `webOutputDir`** — when the tape directory contained a `poster.png`, the manifest received the source path (outside `web/`) rather than a self-contained web-relative copy, and card generation did not run. The poster is now `copyFileSync`'d into `webOutputDir` with the card generated from the copy
+- **Multi-voice non-web GIF named after primary voice** — in multi-voice mode the GIF carried the name `slug.<voice>.gif` (e.g. `slug.alan.gif`) rather than the voice-agnostic `slug.gif`; `runFfmpeg` now skips GIF generation for all voices in multi-voice mode, and a single `slug.gif` comes from the primary voice MP4 after the voice loop
+- **`buildM4aArgs` invalid filter on empty segments** — an empty segment list produced `amix=inputs=0`, an invalid ffmpeg filter; the function now throws a descriptive error before invoking ffmpeg
+- `manifest.test.ts` indentation corrected from 4-space to tabs (matches rest of codebase)
+
+### Tests
+
+- `meta.test.ts` — `vhs.shell` accepts plain names and paths; rejects values containing double-quote characters
+- `timeline/index.test.ts` — `generateVhsFromTimeline` emits `Set Shell "zsh"` by default and respects `vhs.shell` override
+- `model_test.go` — unselected chapter step shows `§`; selected chapter step shows `▸` not `§`
+- `chapters.test.ts` — FFMETADATA1 escaping for `=`, `;`, `#`, `\`, and newlines in both explicit and auto-generated chapter titles
+
 ## [1.2.2] - 2026-04-13
 
 ### Fixed
@@ -148,6 +171,7 @@ post-production timing adjustments, and a full set of studio example tapes.
 - **Timing tools** — `--audit` prints a timing comparison table after synthesis, `--audit-fix` writes corrected pauses to `tape.yaml`, `--debug-overlay` burns command labels into the video
 - **202 tests** — TypeScript (`vitest`) and Go across parser, schemas, generators, extractors, utilities, captions, workspace, metadata, timeline, and TUI
 
+[1.2.3]: https://github.com/philsherry/playback/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/philsherry/playback/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/philsherry/playback/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/philsherry/playback/compare/v1.1.0...v1.2.0

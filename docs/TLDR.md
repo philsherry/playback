@@ -40,7 +40,7 @@ If it seems a bit out of sync, use the `playback-tui`.
 
 ## `playback-tui`
 
-Run the `playback-cli` command to edit the TUI demo.
+Run the `playback-tui` command to edit the TUI demo.
 
 ```sh
 npm run playback:edit -- studio/demo/tui

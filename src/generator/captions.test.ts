@@ -198,6 +198,13 @@ describe('generateCaptions', () => {
 			expect(content).toContain('0:00:00.00');
 			expect(content).toContain('0:00:03.00');
 		});
+
+		it('Style line ends with Encoding=0', () => {
+			generateCaptions(segments, '/output', 'ep');
+			// The last field in the Style line is Encoding (0 = ANSI/Unicode).
+			// This locks the value so a future change doesn't silently break burn-in.
+			expect(capturedContent('.ass')).toMatch(/^Style: Default,.*,0$/m);
+		});
 	});
 
 	describe('SRT output', () => {

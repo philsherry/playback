@@ -151,7 +151,13 @@ if (changelogBody == null) {
 	errors.push(`CHANGELOG.md entry for version ${version} has no body`);
 }
 
-const expectedReleaseNotesTitle = `# Release notes — v${version}`;
+const versionParts = version.split('.').map(Number);
+const isPatch = versionParts[2] > 0;
+
+// Patch releases use the minor-series title (v1.2.x); minor/major use the exact version.
+const expectedReleaseNotesTitle = isPatch
+	? `# Release notes — v${versionParts[0]}.${versionParts[1]}.x`
+	: `# Release notes — v${version}`;
 const actualReleaseNotesTitle = releaseNotesLines[0]?.trim();
 if (actualReleaseNotesTitle !== expectedReleaseNotesTitle) {
 	errors.push(
@@ -167,9 +173,6 @@ if (!releaseNotesBody) {
 if (hasLocalTag(`v${version}`)) {
 	errors.push(`git tag v${version} already exists locally`);
 }
-
-const versionParts = version.split('.').map(Number);
-const isPatch = versionParts[2] > 0;
 
 if (!isPatch && !fs.existsSync(releaseTapePath(version))) {
 	errors.push(

@@ -72,10 +72,10 @@
 		"playback:edit:accessible": "cd tui && go run ./cmd/playback-tui --accessible",
 		"playback:edit:hc": "cd tui && go run ./cmd/playback-tui --high-contrast",
 		"playback:edit:report": "cd tui && go run ./cmd/playback-tui --report",
-		"playback:studio:build": "bash studio/build-studio.sh",
-		"playback:studio:build:debug": "bash studio/build-studio.sh debug",
 		"playback:release:timings": "tsx scripts/debug/timings.ts studio/demo/release",
 		"playback:release:timings:fix": "tsx scripts/debug/timings.ts studio/demo/release --fix",
+		"playback:studio:build": "bash studio/build-studio.sh",
+		"playback:studio:build:debug": "bash studio/build-studio.sh debug",
 		"playback:studio:timings": "tsx scripts/debug/timings.ts studio/demo/tui",
 		"playback:studio:timings:accessible": "tsx scripts/debug/timings.ts studio/demo/accessible",
 		"playback:studio:timings:accessible:fix": "tsx scripts/debug/timings.ts studio/demo/accessible --fix",
@@ -101,5 +101,5 @@
 		"validate": "tsx src/cli.ts validate"
 	},
 	"type": "module",
-	"version": "1.2.2"
+	"version": "1.2.3"
 }

@@ -60,7 +60,7 @@ export function generateScaffold(parsed: ParsedTape, durationSecs: number): stri
 	for (const step of tape.steps) {
 		if (narrationItems.length >= MAX_STEPS) break;
 		if (step.action === 'chapter') continue;
-		const narration = step.action === 'narrate' ? step.narration : step.narration;
+		const narration = step.narration;
 		if (!narration) continue;
 		const sentence = firstSentence(narration);
 		if (sentence) {
@@ -76,8 +76,11 @@ export function generateScaffold(parsed: ParsedTape, durationSecs: number): stri
 		? meta.description.trim()
 		: '<!-- Add a description of what this video shows -->';
 
+	// Quote the title so YAML stays valid when it contains `:`, `#`, or similar.
+	const safeTitle = meta.title.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
 	return `---
-title: ${meta.title}
+title: "${safeTitle}"
 version: "${version}"
 duration: ${duration}
 ---

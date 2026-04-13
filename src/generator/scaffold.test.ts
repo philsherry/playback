@@ -41,7 +41,7 @@ describe('generateScaffold', () => {
 		const parsed = makeParsed({ title: 'My Demo', version: '2.1.0' });
 		const content = generateScaffold(parsed, 90);
 
-		expect(content).toContain('title: My Demo');
+		expect(content).toContain('title: "My Demo"');
 		expect(content).toContain('version: "2.1.0"');
 		expect(content).toContain('duration: ~2 minutes');
 	});
@@ -154,5 +154,20 @@ describe('generateScaffold', () => {
 		expect(content).toContain('## What you will see');
 		expect(content).toContain('## What you will need');
 		expect(content).toContain('## What comes next');
+	});
+
+	it('quotes titles containing YAML-special characters', () => {
+		const parsed = makeParsed({ title: 'Getting Started: Part 1' });
+		const content = generateScaffold(parsed, 60);
+
+		// Unquoted, the `:` would break YAML parsers
+		expect(content).toContain('title: "Getting Started: Part 1"');
+	});
+
+	it('escapes double-quote characters in the title', () => {
+		const parsed = makeParsed({ title: 'It\'s "complex"' });
+		const content = generateScaffold(parsed, 60);
+
+		expect(content).toContain('title: "It\'s \\"complex\\""');
 	});
 });

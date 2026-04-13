@@ -429,6 +429,10 @@ export function buildM4aArgs(
 	segments: SynthesisedSegment[],
 	outputFile: string
 ): string[] {
+	if (segments.length === 0) {
+		throw new Error('buildM4aArgs: no narration segments — cannot build an audio mix');
+	}
+
 	const inputs: string[] = [];
 	for (const seg of segments) {
 		inputs.push('-channel_layout', 'mono', '-i', seg.audioFile);
