@@ -8,7 +8,7 @@ import {
 	VIDEO_HEIGHT,
 	VIDEO_WIDTH,
 } from '../constants';
-import type { CaptionFiles, FfmpegResult, SynthesisedSegment, VideoMetadata } from '../types';
+import type { CaptionFiles, FfmpegResult, MultiVoiceTrack, SynthesisedSegment, VideoMetadata } from '../types';
 import { escapeAssPath } from '../utilities/escape';
 import { isVerbose, logVerbose, logWarn } from '../logger';
 
@@ -261,13 +261,13 @@ async function stitchMp4(
 	}
 
 	// Chapter metadata file — added as the last input so its index is
-	// predictable. -map_metadata references this input by index.
+	// predictable. -map_chapters references this input by index.
 	const chapterInputIndex = 1 + segments.length;
 	if (chapterFile) {
 		inputs.push('-i', chapterFile);
 	}
 	const chapterFlags = chapterFile
-		? ['-map_metadata', `${chapterInputIndex}`]
+		? ['-map_chapters', `${chapterInputIndex}`]
 		: [];
 
 	if (segments.length === 0) {
@@ -395,6 +395,209 @@ async function generateCard(posterFile: string, cardFile: string): Promise<void>
 
 
 /**
+ * Builds ffmpeg args to pad the raw terminal recording to VIDEO_HEIGHT
+ * with no audio and no subtitle filter. Used by `--web` to produce the
+ * shared video file.
+ * @param rawMp4 - Path to the raw VHS recording.
+ * @param outputFile - Destination path for the padded video.
+ * @returns ffmpeg argument list (excludes the leading `ffmpeg -y`).
+ */
+export function buildPadVideoArgs(rawMp4: string, outputFile: string): string[] {
+	return [
+		'-i', rawMp4,
+		'-vf', `pad=w=${VIDEO_WIDTH}:h=${VIDEO_HEIGHT}:x=0:y=0:color=black`,
+		'-map', '0:v',
+		'-c:v', 'libx264',
+		'-crf', '18',
+		'-preset', 'slow',
+		outputFile,
+	];
+}
+
+/**
+ * Builds ffmpeg args to mix narration segments into a standalone M4A file.
+ *
+ * The M4A starts at t=0; silence fills gaps between segments so the file
+ * stays time-locked to the shared video when played in sync via `currentTime`.
+ * Unlike `buildAudioFilterComplex` (which reserves index 0 for the video),
+ * here the segments are the only inputs so they begin at index 0.
+ * @param segments - Synthesised narration segments with timing and audio files.
+ * @param outputFile - Destination path for the output `.m4a`.
+ * @returns ffmpeg argument list (excludes the leading `ffmpeg -y`).
+ */
+export function buildM4aArgs(
+	segments: SynthesisedSegment[],
+	outputFile: string
+): string[] {
+	const inputs: string[] = [];
+	for (const seg of segments) {
+		inputs.push('-channel_layout', 'mono', '-i', seg.audioFile);
+	}
+
+	// Build adelay + amix filter with 0-based input indices (no video at [0]).
+	const audioFilters = segments.map((seg, i) => {
+		const delayMs = Math.round(seg.startTime * 1000);
+		return `[${i}:a]adelay=${delayMs}|${delayMs}[a${i}]`;
+	});
+	const audioInputs = segments.map((_, i) => `[a${i}]`).join('');
+	const mixFilter = `${audioInputs}amix=inputs=${segments.length}:duration=longest:normalize=0[aout]`;
+	const audioFilterComplex = [...audioFilters, mixFilter].join('; ');
+
+	return [
+		...inputs,
+		'-filter_complex', audioFilterComplex,
+		'-map', '[aout]',
+		'-c:a', 'aac',
+		'-ar', '44100',
+		'-b:a', '128k',
+		'-vn',
+		outputFile,
+	];
+}
+
+/**
+ * Mixes synthesised narration segments into a standalone `.m4a` audio file.
+ *
+ * Used by `--web` builds to produce per-voice audio alongside the shared
+ * padded video. The M4A is time-locked to the video: silence at t=0 and
+ * between segments keeps `audio.currentTime` in sync with `video.currentTime`.
+ * @param segments - Synthesised narration segments with timing and audio files.
+ * @param outputFile - Destination path for the output `.m4a`.
+ */
+export async function mixAudioToM4a(
+	segments: SynthesisedSegment[],
+	outputFile: string
+): Promise<void> {
+	await spawnFfmpeg(buildM4aArgs(segments, outputFile));
+}
+
+/**
+ * Pads the raw terminal recording to 1280×720 with no audio and no
+ * burned-in captions. Produces the shared video file for `--web` builds.
+ * @param rawMp4 - Path to the raw VHS recording.
+ * @param outputFile - Destination path for the padded video.
+ */
+export async function padVideoOnly(rawMp4: string, outputFile: string): Promise<void> {
+	await spawnFfmpeg(buildPadVideoArgs(rawMp4, outputFile));
+}
+
+/**
+ * Builds ffmpeg args for a multi-voice MKV: one audio stream and one
+ * subtitle stream per voice track.
+ * @param rawMp4 - Path to the raw VHS recording.
+ * @param voiceTracks - Per-voice segments and caption files.
+ * @param outputFile - Destination path for the MKV.
+ * @param metadata - Video metadata tags to embed.
+ * @param chapterFile - Optional FFMETADATA1 chapter file.
+ * @returns ffmpeg argument list (excludes leading `ffmpeg -y`).
+ */
+export function buildMkvMultiVoiceArgs(
+	rawMp4: string,
+	voiceTracks: MultiVoiceTrack[],
+	outputFile: string,
+	metadata: VideoMetadata,
+	chapterFile?: string
+): string[] {
+	const videoFilter = `pad=w=${VIDEO_WIDTH}:h=${VIDEO_HEIGHT}:x=0:y=0:color=black`;
+	const metaFlags = buildMetadataFlags(metadata);
+
+	const inputs: string[] = ['-i', rawMp4];
+	let audioInputIndex = 1;
+	const audioMixes: Array<{ filter: string; outLabel: string }> = [];
+
+	for (const track of voiceTracks) {
+		const baseIdx = audioInputIndex;
+		for (const seg of track.segments) {
+			inputs.push('-channel_layout', 'mono', '-i', seg.audioFile);
+			audioInputIndex++;
+		}
+		const filters = track.segments.map((seg, i) => {
+			const delayMs = Math.round(seg.startTime * 1000);
+			return `[${baseIdx + i}:a]adelay=${delayMs}|${delayMs}[va${baseIdx + i}]`;
+		});
+		const mixInputs = track.segments.map((_, i) => `[va${baseIdx + i}]`).join('');
+		const outLabel = `amix_${baseIdx}`;
+		filters.push(
+			`${mixInputs}amix=inputs=${track.segments.length}:duration=longest:normalize=0[${outLabel}]`
+		);
+		audioMixes.push({ filter: filters.join('; '), outLabel });
+	}
+
+	const srtInputIndices: number[] = [];
+	for (const track of voiceTracks) {
+		inputs.push('-i', track.captions.srtFile);
+		srtInputIndices.push(audioInputIndex++);
+	}
+
+	let chapterIdx: number | null = null;
+	if (chapterFile) {
+		inputs.push('-i', chapterFile);
+		chapterIdx = audioInputIndex;
+	}
+
+	const filterComplex = audioMixes.map((m) => m.filter).join('; ');
+	const maps: string[] = ['-map', '0:v'];
+	for (const { outLabel } of audioMixes) {
+		maps.push('-map', `[${outLabel}]`);
+	}
+	for (const idx of srtInputIndices) {
+		maps.push('-map', `${idx}:s`);
+	}
+
+	const chapterFlags = chapterIdx !== null
+		? ['-map_chapters', `${chapterIdx}`]
+		: [];
+
+	const streamMeta: string[] = [];
+	voiceTracks.forEach((track, i) => {
+		streamMeta.push(`-metadata:s:a:${i}`, `title=${track.voice}`);
+		streamMeta.push(`-metadata:s:s:${i}`, `title=${track.voice}`);
+	});
+
+	return [
+		...inputs,
+		'-vf', videoFilter,
+		'-filter_complex', filterComplex,
+		...maps,
+		// Disable auto-copying of container metadata from inputs so only the
+		// explicit -metadata flags below are written to the MKV container.
+		'-map_metadata', '-1',
+		...chapterFlags,
+		'-c:v', 'libx264',
+		'-crf', '18',
+		'-preset', 'slow',
+		'-c:a', 'aac',
+		'-ar', '44100',
+		'-b:a', '128k',
+		'-c:s', 'srt',
+		...streamMeta,
+		...metaFlags,
+		outputFile,
+	];
+}
+
+/**
+ * Produces a single MKV with one audio stream and one subtitle stream
+ * per voice track. Replaces multiple per-voice MP4s with one archive file.
+ * @param rawMp4 - Path to the raw VHS recording.
+ * @param voiceTracks - Per-voice segments and caption files.
+ * @param outputFile - Destination path for the MKV.
+ * @param metadata - Video metadata to embed.
+ * @param chapterFile - Optional FFMETADATA1 chapter file.
+ */
+export async function stitchMkvMultiVoice(
+	rawMp4: string,
+	voiceTracks: MultiVoiceTrack[],
+	outputFile: string,
+	metadata: VideoMetadata,
+	chapterFile?: string
+): Promise<void> {
+	await spawnFfmpeg(
+		buildMkvMultiVoiceArgs(rawMp4, voiceTracks, outputFile, metadata, chapterFile)
+	);
+}
+
+/**
  * Combines the raw VHS terminal recording with synthesised narration audio
  * and an embedded SRT subtitle track into a `.mkv` container.
  *
@@ -435,7 +638,7 @@ async function stitchMkv(
 		inputs.push('-i', chapterFile);
 	}
 	const chapterFlags = chapterFile
-		? ['-map_metadata', `${chapterInputIndex}`]
+		? ['-map_chapters', `${chapterInputIndex}`]
 		: [];
 
 	const subtitleLang = metadata.language ? bcp47ToIso639(metadata.language) : null;
@@ -449,6 +652,7 @@ async function stitchMkv(
 			'-vf', videoFilter,
 			'-map', '0:v',
 			'-map', `${srtInputIndex}:s`,
+			'-map_metadata', '-1',
 			...chapterFlags,
 			'-c:v', 'libx264',
 			'-crf', '18',
@@ -471,6 +675,7 @@ async function stitchMkv(
 		'-map', '0:v',
 		'-map', '[aout]',
 		'-map', `${srtInputIndex}:s`,
+		'-map_metadata', '-1',
 		...chapterFlags,
 		'-c:v', 'libx264',
 		'-crf', '18',
@@ -505,7 +710,8 @@ async function stitchMkv(
  * @param overlayFilter - Optional ffmpeg drawtext filter for debug overlay.
  * @param chapterFile - Optional FFMETADATA1 chapter file to embed in the MP4.
  * @param mkv - When `true`, also produce a `.mkv` with an embedded SRT subtitle track.
- * @returns Paths to the generated `.mp4`, `.gif`, and poster image (if any).
+ * @param skipGif - When `true`, skip GIF generation entirely.
+ * @returns Paths to the generated `.mp4`, `.gif` (or `null` if skipped), and poster image (if any).
  */
 export async function runFfmpeg(
 	rawMp4: string,
@@ -518,7 +724,8 @@ export async function runFfmpeg(
 	metadata: VideoMetadata,
 	overlayFilter?: string,
 	chapterFile?: string,
-	mkv?: boolean
+	mkv?: boolean,
+	skipGif?: boolean
 ): Promise<FfmpegResult> {
 	const mp4File = join(outputDir, `${outputName}.mp4`);
 	const gifFile = join(outputDir, `${outputName}.gif`);
@@ -526,7 +733,12 @@ export async function runFfmpeg(
 	const cardFile = join(outputDir, `${outputName}.card.png`);
 
 	await stitchMp4(rawMp4, segments, mp4File, captions, metadata, overlayFilter, chapterFile);
-	await generateGif(mp4File, gifFile);
+
+	let gifResult: string | null = null;
+	if (!skipGif) {
+		await generateGif(mp4File, gifFile);
+		gifResult = gifFile;
+	}
 
 	// Poster: explicit file takes priority over frame extraction
 	let resolvedPoster: string | null = null;
@@ -553,7 +765,8 @@ export async function runFfmpeg(
 		resolvedCard = cardFile;
 	}
 
-	const result: FfmpegResult = { cardFile: resolvedCard, gifFile, mp4File, ogFile: null, posterFile: resolvedPoster };
+	// ogFile is always null — OG image (1200×630) generation is not yet implemented.
+	const result: FfmpegResult = { cardFile: resolvedCard, gifFile: gifResult, mp4File, ogFile: null, posterFile: resolvedPoster };
 
 	if (mkv) {
 		const mkvFile = join(outputDir, `${outputName}.mkv`);
@@ -563,4 +776,6 @@ export async function runFfmpeg(
 
 	return result;
 }
+
+export { extractPoster as extractPosterFromMp4, generateCard as generateCardFromPoster, generateGif };
 

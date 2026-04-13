@@ -4,6 +4,23 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-04-13
+
+### Fixed
+
+- **MKV container metadata** — all three ffmpeg paths (`stitchMp4`, `stitchMkv`, `buildMkvMultiVoiceArgs`) used `-map_metadata ${n}` to embed chapter markers; that flag copies *global* metadata from the source, not chapter markers. Since FFMETADATA1 chapter files carry no global tags, it silently clobbered the explicit `-metadata title/artist/…` flags. Changed to `-map_chapters ${n}` throughout so global metadata and chapter embedding stay independent
+
+### Added
+
+- **`--web` flag** — produces a web-optimised output set inside a `web/` subdirectory: `slug.silent.mp4` (shared padded video, no audio, no burned captions), `slug.mp4` / `slug.<voice>.mp4` (primary voice with burned captions and baked audio, for download), per-voice M4A audio files (time-locked via silence so `audio.currentTime` stays in sync with `video.currentTime`), WebVTT and SRT captions per voice, and a `manifest.json` with `video` (silent), `download` (voiced MP4), and per-voice `audio` and `captions` entries. A web player can switch voices at runtime without re-downloading the video
+- **Multi-voice MKV bundling** — `--mkv` now uses `stitchMkvMultiVoice` to pack all voice audio tracks and SRT subtitle streams into one MKV container; stream labels carry the voice name so players (VLC, mpv) can switch between them at playback time. `--web` and `--mkv` combine freely
+- **Caption word-wrapping** — `wrapCueText` wraps narration text at ≤ 65 characters per line (GOV.UK style guide) with a hard ceiling of 2 lines; applied to all three caption formats (VTT, ASS, SRT). ASS hard line breaks use `\N`; SRT and VTT use `\n`
+- **`og` field in manifest** — placeholder for a 1200×630 Open Graph image alongside the existing `download`, `poster`, and `card` fields; always `null` until OG generation is implemented
+- **`--manifest-only` flag** — regenerates `manifest.json` from existing web output files without re-running the pipeline
+- **`docs/OUTPUT_FORMATS.md`** — reference for all output modes (`default`, `--web`, `--mkv`), caption sizing rules, web player sync example, and flag combination guidance
+- **`tape.pristine.yaml` support in playlist** — `findTapeDirs` copies `tape.pristine.yaml` to `tape.yaml` before recording when only the pristine file exists, matching the behaviour of `build-studio.sh`
+- **TUI `CaptionWarnWords` constant** — `tui/tape/timing.go` now exports the caption word-count warning threshold, keeping Go and TypeScript in sync
+
 ## [1.2.1] - 2026-04-12
 
 ### Fixed
@@ -131,6 +148,7 @@ post-production timing adjustments, and a full set of studio example tapes.
 - **Timing tools** — `--audit` prints a timing comparison table after synthesis, `--audit-fix` writes corrected pauses to `tape.yaml`, `--debug-overlay` burns command labels into the video
 - **202 tests** — TypeScript (`vitest`) and Go across parser, schemas, generators, extractors, utilities, captions, workspace, metadata, timeline, and TUI
 
+[1.2.2]: https://github.com/philsherry/playback/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/philsherry/playback/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/philsherry/playback/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/philsherry/playback/compare/v1.0.6...v1.1.0

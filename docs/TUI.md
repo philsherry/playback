@@ -153,9 +153,10 @@ On save, the writer puts both `pause` and `narrationOffset` values back into `ta
 
 ```text
 tui/
-  main.go                — entry point
-  cmd.go                 — cobra root command, flag handling, path resolution
-  cmd_test.go            — INIT_CWD path resolution tests
+  cmd/playback-tui/
+    main.go              — entry point
+    cmd.go               — cobra root command, flag handling, path resolution
+    cmd_test.go          — INIT_CWD path resolution tests
   .golangci.yaml         — linter config with project-specific exclusions
   tape/
     loader.go            — Step, Tape, Meta, TapeData structs + YAML loading

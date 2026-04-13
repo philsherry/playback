@@ -33,6 +33,15 @@ function releaseTapePath(ver) {
 	return path.join(repoRoot, 'studio', 'demo', 'release', `v${ver}`, 'tape.yaml');
 }
 
+/**
+ * Returns the expected path to the archived release notes for a given version.
+ * @param {string} ver - Semver version string (without the `v` prefix).
+ * @returns {string} Absolute path to the RELEASE_NOTES.md file.
+ */
+function releaseNotesArchivePath(ver) {
+	return path.join(repoRoot, 'studio', 'demo', 'release', `v${ver}`, 'RELEASE_NOTES.md');
+}
+
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const packageLock = JSON.parse(fs.readFileSync(packageLockPath, 'utf8'));
 const changelog = fs.readFileSync(changelogPath, 'utf8');
@@ -165,6 +174,12 @@ const isPatch = versionParts[2] > 0;
 if (!isPatch && !fs.existsSync(releaseTapePath(version))) {
 	errors.push(
 		`release tape studio/demo/release/v${version}/tape.yaml does not exist — write the release video before cutting a release`
+	);
+}
+
+if (!isPatch && !fs.existsSync(releaseNotesArchivePath(version))) {
+	errors.push(
+		`studio/demo/release/v${version}/RELEASE_NOTES.md does not exist — copy RELEASE_NOTES.md to the versioned directory before cutting a release`
 	);
 }
 

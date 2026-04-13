@@ -1391,7 +1391,12 @@ func (m Model) renderInspectorDetail(steps []tape.Step) string {
 	narr := m.styles.Muted.Render("[no narration]")
 	if step.Narration != "" {
 		narrDur := tape.NarrationDuration(step.Narration)
-		narr = fmt.Sprintf("%s  (~%.1fs)", step.Narration, narrDur)
+		words := len(strings.Fields(step.Narration))
+		wordStr := fmt.Sprintf("%d words", words)
+		if words > tape.CaptionWarnWords {
+			wordStr = m.styles.Warning.Render("⚠ " + wordStr)
+		}
+		narr = fmt.Sprintf("%s  (~%.1fs, %s)", step.Narration, narrDur, wordStr)
 	}
 
 	// Status: show [modified], save confirmation, or save error.

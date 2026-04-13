@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -11,7 +11,9 @@ export interface PlaylistCommandOptions {
 }
 
 /**
- * Recursively finds directories containing a `tape.yaml` file.
+ * Recursively finds directories containing a `tape.yaml` or `tape.pristine.yaml` file.
+ * Directories with only a pristine file have it copied to `tape.yaml` before recording,
+ * matching the behaviour of `build-studio.sh`.
  * @param dir - Root directory to search.
  * @returns Array of absolute paths to tape directories, sorted alphabetically.
  */
@@ -21,7 +23,7 @@ export function findTapeDirs(dir: string): string[] {
 	for (const entry of entries) {
 		const full = join(dir, entry);
 		if (!statSync(full).isDirectory()) continue;
-		if (existsSync(join(full, 'tape.yaml'))) {
+		if (existsSync(join(full, 'tape.yaml')) || existsSync(join(full, 'tape.pristine.yaml'))) {
 			results.push(full);
 		} else {
 			results.push(...findTapeDirs(full));
@@ -72,6 +74,14 @@ export async function runPlaylist(options: PlaylistCommandOptions): Promise<void
 		attempted = i + 1;
 
 		logInfo(`${prefix} ${rel}`);
+
+		// If the tape directory only has a pristine file, copy it to tape.yaml
+		// before recording — matches the behaviour of build-studio.sh.
+		const pristineFile = join(dir, 'tape.pristine.yaml');
+		const tapeFile = join(dir, 'tape.yaml');
+		if (existsSync(pristineFile) && !existsSync(tapeFile)) {
+			copyFileSync(pristineFile, tapeFile);
+		}
 
 		const result = spawnSync(runner, [cliPath, 'tape', dir, ...forwardedFlags], {
 			cwd: projectRoot,

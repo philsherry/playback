@@ -22,9 +22,19 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const index = process.argv[2] !== undefined ? parseInt(process.argv[2], 10) : null;
+// If the first argument ends with '.md', treat it as an explicit file path.
+// Otherwise fall back to RELEASE_NOTES.md in the repo root.
+// Usage:
+//   node scripts/release/release-notes.cjs [file.md] [section]
+const firstArg = process.argv[2];
+const hasFilePath = firstArg !== undefined && firstArg.endsWith('.md');
+const filePath = hasFilePath ? firstArg : null;
+const sectionArg = hasFilePath ? process.argv[3] : firstArg;
+const index = sectionArg !== undefined ? parseInt(sectionArg, 10) : null;
 
-const notesPath = path.join(__dirname, '../..', 'RELEASE_NOTES.md');
+const notesPath = filePath
+	? path.resolve(process.cwd(), filePath)
+	: path.join(__dirname, '../..', 'RELEASE_NOTES.md');
 const notes = fs.readFileSync(notesPath, 'utf8');
 const lines = notes.split('\n');
 

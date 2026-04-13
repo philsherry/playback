@@ -48,6 +48,7 @@ voices.yaml
 !.vscode/settings.json
 !.vscode/tasks.json
 .agents/memory/
+.agents/skills/
 .claude/memory/
 .github/memory/
 

@@ -18,6 +18,11 @@ const (
 	// average for the English voices we use.
 	WordsPerMinute = 150
 
+	// CaptionWarnWords is the word count threshold above which a narration
+	// segment is likely too long for comfortable listening and the caption bar.
+	// 25 words ≈ 10s at 150 WPM.
+	CaptionWarnWords = 25
+
 	// MinNarrationDuration is the floor for any narration segment. Even
 	// a single word gets at least this many seconds, to avoid unnaturally
 	// short audio clips.

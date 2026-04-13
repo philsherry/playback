@@ -100,6 +100,24 @@ export const CAPTION_BACK_COLOUR = '&H1A000000';
 export const CAPTION_MARGIN_V = 10;
 
 /**
+ * Maximum characters per caption line.
+ * GOV.UK style guide recommendation; fits the 60px caption bar at 18px font.
+ */
+export const CAPTION_MAX_LINE_WIDTH = 65;
+
+/**
+ * Hard ceiling on caption lines.
+ * At 18px font with ~23px line height, the 60px caption bar holds at least 2 lines.
+ */
+export const CAPTION_MAX_LINES = 2;
+
+/**
+ * Word count threshold for narration length warnings.
+ * 25 words ≈ 10s at 150 WPM — a signal the segment may be too dense.
+ */
+export const CAPTION_WARN_WORDS = 25;
+
+/**
  * Amber terminal theme for VHS recordings.
  *
  * Evokes a classic amber phosphor CRT monitor. Foreground is #FF9900;
@@ -156,6 +174,21 @@ export const WORDS_PER_MINUTE = 150;
 export const MIN_NARRATION_DURATION = 1.5;
 
 /**
+ * Counts the number of words in a narration string.
+ *
+ * Used to warn when a narration segment is likely too long for comfortable
+ * listening or for the two-line caption bar. Handles any whitespace as a
+ * word boundary.
+ * @param text - The narration text to count words in.
+ * @returns Word count, or 0 for empty/whitespace-only input.
+ */
+export function countWords(text: string): number {
+	const trimmed = text.trim();
+	if (!trimmed) return 0;
+	return trimmed.split(WHITESPACE_SPLIT).length;
+}
+
+/**
  * Estimates how long narration text takes to speak, in seconds.
  * Shared between the TTS extractor, VHS generator, and caption generator
  * so all three agree on step durations.
@@ -163,7 +196,7 @@ export const MIN_NARRATION_DURATION = 1.5;
  * @returns Duration in seconds.
  */
 export function narrationDuration(text: string): number {
-	const words = text.trim().split(WHITESPACE_SPLIT).length;
+	const words = countWords(text);
 	return Math.max(MIN_NARRATION_DURATION, (words / WORDS_PER_MINUTE) * 60);
 }
 

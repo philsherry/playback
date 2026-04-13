@@ -3,7 +3,13 @@ import {
 	narrationDuration,
 	stepDuration,
 	stepToTime,
+	countWords,
 	MIN_NARRATION_DURATION,
+	CAPTION_BAR_HEIGHT,
+	CAPTION_FONT_SIZE,
+	CAPTION_MAX_LINE_WIDTH,
+	CAPTION_MAX_LINES,
+	CAPTION_WARN_WORDS,
 } from './constants';
 import type { Step } from './schema/tape';
 
@@ -114,5 +120,49 @@ describe('stepToTime', () => {
 
 	it('returns 0 for an empty steps array', () => {
 		expect(stepToTime([], 1)).toBe(0);
+	});
+});
+
+describe('caption constants', () => {
+	it('CAPTION_MAX_LINE_WIDTH is 65', () => {
+		expect(CAPTION_MAX_LINE_WIDTH).toBe(65);
+	});
+
+	it('CAPTION_MAX_LINES is 2', () => {
+		expect(CAPTION_MAX_LINES).toBe(2);
+	});
+
+	it('CAPTION_WARN_WORDS is 25', () => {
+		expect(CAPTION_WARN_WORDS).toBe(25);
+	});
+
+	it('caption bar holds CAPTION_MAX_LINES at 18px font with standard line height', () => {
+		// 18px font × 1.3 line-height = ~23px per line
+		// CAPTION_BAR_HEIGHT (60) / 23 ≈ 2.6 — safely fits CAPTION_MAX_LINES (2)
+		const lineHeightPx = CAPTION_FONT_SIZE * 1.3;
+		const fitsLines = Math.floor(CAPTION_BAR_HEIGHT / lineHeightPx);
+		expect(fitsLines).toBeGreaterThanOrEqual(CAPTION_MAX_LINES);
+	});
+
+	describe('countWords', () => {
+		it('counts words in a normal sentence', () => {
+			expect(countWords('one two three four five')).toBe(5);
+		});
+
+		it('handles extra whitespace and newlines', () => {
+			expect(countWords('  one  two\nthree  ')).toBe(3);
+		});
+
+		it('returns 0 for empty string', () => {
+			expect(countWords('')).toBe(0);
+		});
+
+		it('returns 0 for whitespace-only string', () => {
+			expect(countWords('   \t\n  ')).toBe(0);
+		});
+
+		it('returns 1 for a single word', () => {
+			expect(countWords('hello')).toBe(1);
+		});
 	});
 });

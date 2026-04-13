@@ -17,6 +17,10 @@ npm run lint         # all linting (advisory)
 
 Read @.agents/TESTING.md
 
+## Setup and dependencies
+
+Read @.agents/SETUP.md
+
 ## Project structure
 
 Read @.agents/STRUCTURE.md

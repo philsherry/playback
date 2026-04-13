@@ -11,6 +11,7 @@
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import { CAPTION_WARN_WORDS, countWords } from '../constants';
 import type { Timeline } from '../timeline';
 import type { SynthesisedSegment } from '../types';
 
@@ -81,10 +82,11 @@ export function auditTimings(
 		segByStep.set(seg.stepIndex, seg);
 	}
 
-	const COL = { delta: 8, narration: 46, pause: 7, rec: 8, step: 5, wav: 8 };
+	const COL = { delta: 8, narration: 40, pause: 7, rec: 8, step: 5, wav: 8, words: 6 };
 	const header = [
 		'Step'.padEnd(COL.step),
 		'Narration'.padEnd(COL.narration),
+		cell('Words', COL.words),
 		cell('WAV (s)', COL.wav),
 		cell('pause', COL.pause),
 		cell('delta', COL.delta),
@@ -125,11 +127,14 @@ export function auditTimings(
 		const deltaStr = delta !== null ? sign(delta) : '  n/a  ';
 		const recStr = rec !== null ? rec.toFixed(2) : '  n/a  ';
 		const flag = delta !== null && delta < 0 ? ' !' : '  ';
+		const words = countWords(event.narration.text);
+		const wordsStr = String(words) + (words > CAPTION_WARN_WORDS ? '!' : ' ');
 
 		console.log(
 			[
 				String(event.stepIndex).padEnd(COL.step),
 				truncate(event.narration.text, COL.narration).padEnd(COL.narration),
+				cell(wordsStr, COL.words),
 				cell(wavStr, COL.wav),
 				cell(String(Math.round(pause * 100) / 100), COL.pause),
 				cell(deltaStr, COL.delta) + flag,

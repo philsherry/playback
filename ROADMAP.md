@@ -38,6 +38,17 @@ tracking. Pull requests welcome on any of these.
       prompt line
 - [ ] Burn-in option — embed captions directly into the video as a fallback for
       platforms that strip sidecar files
+- [ ] Karaoke captions (`--karaoke`) — word-level highlighting: the full cue
+      stays visible throughout a segment and each word lights up as the voice
+      speaks it. Requires WhisperX for forced-alignment word timing against
+      each synthesised `.wav` file. Produces `.karaoke.vtt` (WebVTT
+      `<c>word</c>` timestamps) and `.karaoke.ass` (`{\kf<centiseconds>}`
+      tags) alongside the standard caption files; standard output is
+      unchanged. Most useful in `--web` output where `::cue` CSS can
+      highlight the active word. Opt-in: `npm run setup -- --karaoke`
+      installs WhisperX separately. **Blocked on: containerised Python
+      tools** (see below) — WhisperX requires PyTorch ≥ 2.4 which has no
+      wheels for Intel Mac x86_64.
 
 ## Output
 
@@ -109,6 +120,82 @@ Architecture notes for a future web-based viewer:
 3. Multi-locale MKV bundle — `--mkv` extended to bundle one video track with
    N audio tracks and N subtitle tracks, each tagged with a BCP 47 language
    code; desktop players (VLC, mpv) handle track selection at playback time
+
+## Infrastructure
+
+### Containerised Python tools (sidecar approach)
+
+**Motivation.** The Python toolchain (currently piper-tts, future WhisperX)
+is installed via `uv tool install` into isolated environments managed by
+asdf/uv. This works well until a tool requires a recent PyTorch version:
+PyTorch dropped Intel Mac (x86_64) wheels at 2.3/2.4, so any tool that
+depends on torch ≥ 2.4 simply cannot run natively on Intel hardware. The
+karaoke caption feature is the immediate blocker, but the problem will recur
+for any future ML tool.
+
+**Approach: Option C — sidecar containers for Python tools only.**
+
+The main pipeline stays native (Homebrew, asdf, Go binary). VHS terminal
+recording and the interactive TUI require a real terminal and cannot run
+usefully inside a container. ffmpeg is Homebrew-managed and has no
+compatibility issues. Only the Python/ML tools move to Docker.
+
+Playback spawns Python tools as Docker containers rather than native
+binaries. From the pipeline's perspective the interface is identical — it
+still runs a subprocess and reads stdout/files — but the subprocess is
+`docker run` instead of a direct binary call.
+
+**What moves to Docker:**
+
+| Tool | Why |
+| --- | --- |
+| `whisperx` | Requires torch ≥ 2.4; no Intel Mac wheels |
+| `piper-tts` | Optional — currently works natively; move for consistency if WhisperX moves |
+
+**What stays native:**
+
+| Tool | Why |
+| --- | --- |
+| VHS | Needs a real terminal/display for recording |
+| ffmpeg | Homebrew-managed; no dep conflicts |
+| Go TUI | Interactive; needs a real terminal |
+
+**Docker image design.**
+
+A single `Dockerfile` (or `docker-compose.yml` service) ships:
+- Python 3.12 base (slim)
+- `uv` for tool management
+- whisperx + correct torch/ctranslate2 pins for the target platform
+- piper-tts (optional, for consistency)
+- Shared volume mount for the XDG cache (`~/.cache/playback/`) so voice
+  models and alignment models persist across runs
+
+ARM64 (Apple Silicon) and x86_64 Linux builds are both supported via
+multi-platform `docker buildx`. Intel Mac runs the x86_64 Linux image
+natively through Docker Desktop.
+
+**Runner interface change.**
+
+`src/runner/piper.ts` and the planned `src/runner/whisperx.ts` detect
+whether Docker is available and whether the tool is installed natively.
+Priority: native binary → Docker image → error with install instructions.
+The `--docker` flag (or `useDocker: true` in config) forces the Docker path
+for reproducible CI runs regardless of native availability.
+
+**Setup.**
+
+```sh
+npm run setup -- --karaoke          # installs WhisperX (native if supported,
+                                    # Docker image otherwise)
+npm run setup -- --karaoke --docker # always use Docker image
+docker pull ghcr.io/philsherry/playback-tools:latest  # pre-built image
+```
+
+**Prerequisite for:**
+- Karaoke captions (`--karaoke` flag)
+- Any future ML pipeline step (silence detection, batch synthesis, etc.)
+
+---
 
 ## Stretch goals
 

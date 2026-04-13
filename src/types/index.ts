@@ -149,8 +149,8 @@ export type FfmpegResult = {
 	 * poster was generated.
 	 */
 	cardFile: string | null;
-	/** Absolute path to the animated `.gif` for README/docs embedding. */
-	gifFile: string;
+	/** Animated GIF, or `null` when `skipGif` is true. */
+	gifFile: string | null;
 	/** Absolute path to the `.mkv` file, if `--mkv` was requested. */
 	mkvFile?: string;
 	/** Absolute path to the final `.mp4` with audio and subtitles. */
@@ -166,4 +166,19 @@ export type FfmpegResult = {
 	 * the tape directory.
 	 */
 	posterFile: string | null;
+};
+
+/**
+ * A single voice track for multi-voice MKV bundling.
+ *
+ * Each entry becomes one audio stream and one subtitle stream in the
+ * output MKV. Stream labels use the `voice` field.
+ */
+export type MultiVoiceTrack = {
+	/** Caption files (SRT used as the MKV subtitle stream). */
+	captions: CaptionFiles;
+	/** Synthesised narration segments with timing and audio file paths. */
+	segments: SynthesisedSegment[];
+	/** Voice name — used as the MKV stream label. */
+	voice: string;
 };

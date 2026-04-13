@@ -1264,6 +1264,30 @@ func TestUpdate_HelpToggle(t *testing.T) {
 	}
 }
 
+func TestRenderInspectorDetail_ShowsWordCount(t *testing.T) {
+	data := testTapeData()
+	// Step 0: "First, we say hello." — 4 words, below warning threshold.
+	m := readyModel(data)
+	m.cursor = 0
+	view := m.View()
+	if !strings.Contains(view, "4 words") {
+		t.Errorf("expected inspector to show word count '4 words', got:\n%s", view)
+	}
+}
+
+func TestRenderInspectorDetail_WordCountWarning(t *testing.T) {
+	data := testTapeData()
+	// Inject a long narration that exceeds CaptionWarnWords.
+	longNarr := "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twenty-one twenty-two twenty-three twenty-four twenty-five twenty-six"
+	data.Tape.Steps[0].Narration = longNarr
+	m := readyModel(data)
+	m.cursor = 0
+	view := m.View()
+	if !strings.Contains(view, "⚠") {
+		t.Errorf("expected warning symbol in inspector for long narration, got:\n%s", view)
+	}
+}
+
 func TestView_NarrationTruncation(t *testing.T) {
 	longNarration := strings.Repeat("word ", 100)
 	data := tape.TapeData{

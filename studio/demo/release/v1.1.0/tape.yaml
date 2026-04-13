@@ -1,7 +1,15 @@
 ---
 title: "What's new in playback 1.1.0"
-output: studio/demo/release
+output: studio/demo/release/v1.1.0
 steps:
+  # Reset the example tape to its pristine overlapping state.
+  - action: type
+    command: cp studio/example/tape/tape.pristine.yaml studio/example/tape/tape.yaml
+    pause: 0.3
+
+  - action: run
+    pause: 0.2
+
   # Brief pause for the shell prompt to settle.
   - action: comment
     pause: 0.5
@@ -12,7 +20,7 @@ steps:
       Playback 1.1.0 ships three connected features: structured logging,
       configurable themes, and an XDG config that works across all your projects.
     commands:
-      - node scripts/release/release-notes.cjs
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.1.0/RELEASE_NOTES.md
     pause: 1
 
   # ── Section 1: Structured logging ────────────────────────────────────────
@@ -23,8 +31,16 @@ steps:
       verbosity levels.
     commands:
       - clear
-      - node scripts/release/release-notes.cjs 1
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.1.0/RELEASE_NOTES.md 1
     pause: 1
+
+  # Clear the section content before the validate demonstrations.
+  - action: type
+    command: clear
+    pause: 0.2
+
+  - action: run
+    pause: 0.1
 
   # Default: info level.
   - action: type
@@ -69,7 +85,7 @@ steps:
       The CLI output now uses colour themes — and so does the TUI.
     commands:
       - clear
-      - node scripts/release/release-notes.cjs 2
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.1.0/RELEASE_NOTES.md 2
     pause: 1
 
   # Launch the TUI with catppuccin-mocha active in ~/.config/playback/config.yaml.
@@ -100,7 +116,7 @@ steps:
       reads it to pick its colour theme.
     commands:
       - clear
-      - node scripts/release/release-notes.cjs 3
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.1.0/RELEASE_NOTES.md 3
     pause: 2
 
   # ── Section 4: XDG voices catalogue ──────────────────────────────────────
@@ -110,7 +126,7 @@ steps:
       The voice catalogue has also moved to XDG.
     commands:
       - clear
-      - node scripts/release/release-notes.cjs 4
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.1.0/RELEASE_NOTES.md 4
     pause: 1
 
   # Show the user-level XDG catalogue.
@@ -133,7 +149,7 @@ steps:
     pause: 1
 
   - action: type
-    command: cat voices.yaml
+    command: cat voices.example.yaml
     pause: 1
 
   - action: run
