@@ -12,7 +12,7 @@ steps:
 
   # Beat 2: Install the agent.
   - action: type
-    command: playback init-agent --force
+    command: playback init-agent
     narration: >
       playback init-agent installs the playback-runner agent into your
       project. One command, and your team can start asking questions
@@ -32,17 +32,9 @@ steps:
   - action: run
     pause: 0.5
 
-  # Clear before Q&A section.
+  # Beat 4: Q1 — How do I use this?
   - action: type
-    command: printf $'\033c'
-    pause: 0.3
-
-  - action: run
-    pause: 0.2
-
-  # Beat 4: Q1 — How do I work this?
-  - action: type
-    command: $DEMO/chat.sh 'How do I work this?'
+    command: $DEMO/chat.sh 'How do I use this?'
     narration: >
       The first question every new user asks.
     pause: 3
