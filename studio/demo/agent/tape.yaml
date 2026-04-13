@@ -34,7 +34,7 @@ steps:
 
   # Clear before Q&A section.
   - action: type
-    command: printf '\033c'
+    command: printf $'\033c'
     pause: 0.3
 
   - action: run
