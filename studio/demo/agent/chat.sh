@@ -35,7 +35,7 @@ case "$QUESTION" in
         answer "Try docs/TLDR.md — the clue's in the name."
         ;;
     "Can I make a playlist?")
-        answer "Yes — playback playlist builds all your tapes at once. Pass --tapes-dir to point at a different directory."
+        answer "Yes — playback playlist builds all your tapes at once."
         ;;
     "Where do my tapes end up?")
         answer "In blockbuster/, mirroring your tape's path. A tape at tapes/intro/ produces blockbuster/tapes/intro/intro.mp4."
