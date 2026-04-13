@@ -3,13 +3,19 @@ set -euo pipefail
 
 QUESTION="${1:-}"
 
+if [[ -z "$QUESTION" ]]; then
+    echo "Usage: chat.sh <question>" >&2
+    exit 1
+fi
+
 ask() {
+    local text="$1"
     gum style \
         --foreground 8 \
         --border rounded \
         --border-foreground 8 \
         --padding "0 1" \
-        "? ${QUESTION}"
+        "? ${text}"
 }
 
 answer() {
@@ -22,7 +28,7 @@ answer() {
         "→ ${text}"
 }
 
-ask
+ask "$QUESTION"
 
 case "$QUESTION" in
     "How do I use this?")
