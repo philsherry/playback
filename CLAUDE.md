@@ -60,3 +60,4 @@ When something fails again and again, when the user has to re-explain or tell yo
 - VHS `Type` types characters verbatim — `\\` is two backslashes, not one. Don't escape `\` in `escapeVhs`.
 - VHS `Type "..."` has no escape for `"` — schema rejects commands containing double quotes.
 - `release:check` tape guard skips patch releases (`x.y.Z > 0`); only minor/major need a release video.
+- Shell escapes in `command:` fields need `$'\033c'` not `'\033c'` — single quotes suppress escape sequences.

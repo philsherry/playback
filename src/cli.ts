@@ -45,6 +45,7 @@ import {
 import { configureLogger, logError, logInfo, logSuccess, logVerbose } from './logger';
 import { runTape } from './commands/tape';
 import { runPlaylist } from './commands/playlist';
+import { runInitAgent } from './commands/init-agent';
 
 // ── Argument parsing ───────────────────────────────────────────────────────────
 
@@ -125,7 +126,7 @@ ${cyan('Usage:')}
   ${white('playback validate <dir>')}              ${dim('Parse and validate a tape without recording')}
   ${white('playback tape <dir>')}                  ${dim('Run the full pipeline')}
   ${white('playback tape <dir>')} ${yellow('--vhs-only')}       ${dim('Record terminal only, skip audio and captions')}
-  ${white('playback tape <dir>')} ${yellow('--captions-only')}   ${dim('Regenerate captions from an existing tape')}
+  ${white('playback tape <dir>')} ${yellow('--captions-only')}  ${dim('Regenerate captions from an existing tape')}
   ${white('playback tape <dir>')} ${yellow('--manifest-only')}  ${dim('Regenerate manifest.json from existing output files')}
   ${white('playback tape <dir>')} ${yellow('--web')}            ${dim('Also export standalone audio + manifest.json')}
   ${white('playback tape <dir>')} ${yellow('--audit')}          ${dim('Print timing audit table after synthesis')}
@@ -134,9 +135,11 @@ ${cyan('Usage:')}
   ${white('playback tape <dir>')} ${yellow('--mkv')}            ${dim('Also produce a .mkv with embedded SRT subtitles')}
   ${white('playback scaffold <dir>')}              ${dim('Generate a PROMPT.md scaffold from tape.yaml and meta.yaml')}
   ${white('playback scaffold <dir>')} ${yellow('--force')}      ${dim('Overwrite an existing PROMPT.md')}
-  ${white('playback playlist')}                        ${dim('Batch-build all tapes in tapesDir')}
+  ${white('playback playlist')}                    ${dim('Batch-build all tapes in tapesDir')}
   ${white('playback playlist')} ${yellow('--tapes-dir <dir>')}  ${dim('Override the tapes directory')}
   ${white('playback playlist')} ${yellow('-- <flags>')}         ${dim('Forward flags to each tape invocation')}
+  ${white('playback init-agent')}                   ${dim('Install the playback-runner agent into this project')}
+  ${white('playback init-agent')} ${yellow('--force')}          ${dim('Overwrite existing agent files')}
 
 ${cyan('Options:')}
   ${yellow('--quiet')}       ${dim('Suppress progress output; show warnings and errors only')}
@@ -152,13 +155,13 @@ if (!command || command === '--help' || command === '-h') {
 
 // ── Validation ─────────────────────────────────────────────────────────────────
 
-if (!['tape', 'validate', 'scaffold', 'playlist'].includes(command)) {
+if (!['tape', 'validate', 'scaffold', 'playlist', 'init-agent'].includes(command)) {
 	logError(`Unknown command: ${command}`);
 	logError('Run playback --help for usage.');
 	process.exit(1);
 }
 
-if (command !== 'playlist' && !tapePath) {
+if (command !== 'playlist' && command !== 'init-agent' && !tapePath) {
 	logError(`Missing tape directory. Usage: playback ${command} <dir>`);
 	process.exit(1);
 }
@@ -187,6 +190,13 @@ async function run(): Promise<void> {
 			forwardedFlags = rawPlaylistArgs.filter((f) => f !== '--');
 		}
 		await runPlaylist({ forwardedFlags, tapesDir });
+		return;
+	}
+
+	// init-agent: install agent files into the current project
+	if (command === 'init-agent') {
+		const initAgentFlags = new Set(args.slice(1));
+		await runInitAgent({ force: initAgentFlags.has('--force'), projectRoot: process.cwd() });
 		return;
 	}
 
