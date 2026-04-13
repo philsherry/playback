@@ -12,7 +12,7 @@ steps:
 
   # Beat 2: Install the agent.
   - action: type
-    command: playback init-agent
+    command: playback init-agent --force
     narration: >
       playback init-agent installs the playback-runner agent into your
       project. One command, and your team can start asking questions
