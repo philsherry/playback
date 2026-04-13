@@ -19,4 +19,4 @@ A walkthrough of the playback TUI editor, demonstrating the core workflow: openi
 ## What you will need
 
 - playback installed (`npm run setup`)
-- The demo tape built (`npm run playback:tape -- studio/example`)
+- The demo tape built (`npm run playback:tape -- studio/example/tape`)

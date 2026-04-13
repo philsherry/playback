@@ -2,9 +2,17 @@
 title: The accessible timing editor
 output: studio/demo/accessible
 steps:
+  # Reset the example tape to its pristine overlapping state.
+  - action: type
+    command: cp studio/example/tape/tape.pristine.yaml studio/example/tape/tape.yaml
+    pause: 0.3
+
+  - action: run
+    pause: 0.2
+
   # Launch accessible mode with the demo tape.
   - action: type
-    command: npm run playback:edit:accessible -- studio/example
+    command: npm run playback:edit:accessible -- studio/example/tape
     narration: >
       The accessible mode is a sequential alternative to the full-screen
       TUI. It uses standard input and output with no alternate screen

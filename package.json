@@ -82,6 +82,9 @@
 		"playback:studio:timings:fix": "tsx scripts/debug/timings.ts studio/demo/tui --fix",
 		"playback:tape": "tsx src/cli.ts tape",
 		"playlist:build": "tsx src/cli.ts playlist",
+		"playlist:build:mkv": "tsx src/cli.ts playlist --mkv",
+		"playlist:build:web": "tsx src/cli.ts playlist --web",
+		"playlist:build:web:mkv": "tsx src/cli.ts playlist --web --mkv",
 		"postsetup": "npm run build",
 		"prepare": "husky || true",
 		"prepublishOnly": "tsup",
@@ -98,5 +101,5 @@
 		"validate": "tsx src/cli.ts validate"
 	},
 	"type": "module",
-	"version": "1.2.1"
+	"version": "1.2.2"
 }

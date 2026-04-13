@@ -2,12 +2,14 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
 	CAPTION_BACK_COLOUR,
+	CAPTION_BAR_HEIGHT,
 	CAPTION_COLOUR,
 	CAPTION_FONT,
 	CAPTION_FONT_SIZE,
 	CAPTION_MARGIN_V,
+	CAPTION_MAX_LINE_WIDTH,
+	CAPTION_MAX_LINES,
 	VIDEO_HEIGHT,
-	CAPTION_BAR_HEIGHT,
 	VIDEO_WIDTH,
 } from '../constants';
 import type { CaptionFiles, SynthesisedSegment } from '../types';
@@ -57,7 +59,7 @@ function buildCues(segments: SynthesisedSegment[]): Cue[] {
 	return segments.map((segment) => ({
 		end: segment.startTime + segment.audioDuration,
 		start: segment.startTime,
-		text: segment.text,
+		text: wrapCueText(segment.text),
 	}));
 }
 
@@ -132,7 +134,7 @@ function generateAss(cues: Cue[], marginV?: number): string {
 
 	for (const cue of cues) {
 		lines.push(
-			`Dialogue: 0,${formatAssTimestamp(cue.start)},${formatAssTimestamp(cue.end)},Default,,0,0,0,,${cue.text}`
+			`Dialogue: 0,${formatAssTimestamp(cue.start)},${formatAssTimestamp(cue.end)},Default,,0,0,0,,${cue.text.replaceAll('\n', '\\N')}`
 		);
 	}
 
@@ -157,6 +159,59 @@ function generateSrt(cues: Cue[]): string {
 			return `${i + 1}\n${start} --> ${end}\n${cue.text}\n`;
 		})
 		.join('\n');
+}
+
+/**
+ * Word-wraps narration text to fit the caption bar.
+ *
+ * - Text at or under `CAPTION_MAX_LINE_WIDTH` chars: returned unchanged.
+ * - Text up to `CAPTION_MAX_LINE_WIDTH × CAPTION_MAX_LINES` chars: wrapped at
+ *   the nearest word boundary to the midpoint.
+ * - Longer text: wrapped to exactly `CAPTION_MAX_LINES` lines at a wider
+ *   per-line width so the bar never overflows.
+ *
+ * Line separator is `\n` — callers that need ASS hard breaks should
+ * substitute `\N` before embedding in a Dialogue line.
+ * @param text - The narration text to wrap.
+ * @returns Wrapped text with `\n` between lines.
+ */
+export function wrapCueText(text: string): string {
+	if (text.length <= CAPTION_MAX_LINE_WIDTH) return text;
+
+	// Allow wider lines when needed to stay within CAPTION_MAX_LINES.
+	const targetWidth = Math.max(
+		CAPTION_MAX_LINE_WIDTH,
+		Math.ceil(text.length / CAPTION_MAX_LINES)
+	);
+
+	const words = text.split(/\s+/);
+	const lines: string[] = [];
+	let current = '';
+
+	for (const word of words) {
+		if (!current) {
+			current = word;
+		} else if (current.length + 1 + word.length <= targetWidth) {
+			current += ' ' + word;
+		} else if (lines.length < CAPTION_MAX_LINES - 1) {
+			lines.push(current);
+			current = word;
+		} else {
+			// At the last line — append rather than overflow.
+			current += ' ' + word;
+		}
+	}
+
+	if (current) lines.push(current);
+
+	// If a single oversized token produced only one line, hard-split at midpoint
+	// so the result always has exactly 2 lines (CAPTION_MAX_LINES).
+	if (lines.length === 1 && lines[0].length > CAPTION_MAX_LINE_WIDTH) {
+		const mid = Math.ceil(lines[0].length / 2);
+		return [lines[0].slice(0, mid), lines[0].slice(mid)].join('\n');
+	}
+
+	return lines.join('\n');
 }
 
 export type { CaptionFiles } from '../types';

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { buildMetadataFlags, runFfmpeg } from './ffmpeg';
-import type { VideoMetadata } from '../types';
+import { buildM4aArgs, buildMetadataFlags, buildMkvMultiVoiceArgs, buildPadVideoArgs, runFfmpeg } from './ffmpeg';
+import type { MultiVoiceTrack, SynthesisedSegment, VideoMetadata } from '../types';
 
 // ---------------------------------------------------------------------------
 // Shared mocks
@@ -272,5 +272,189 @@ describe('runFfmpeg poster guard', () => {
 		expect(result.posterFile).toBeNull();
 		expect(result.cardFile).toBeNull();
 		expect(statSyncMock).not.toHaveBeenCalled();
+	});
+});
+
+describe('buildPadVideoArgs', () => {
+	it('produces a pad filter with correct target dimensions', () => {
+		const args = buildPadVideoArgs('/raw.mp4', '/out.mp4');
+		const vfIndex = args.indexOf('-vf');
+		expect(vfIndex).toBeGreaterThan(-1);
+		const filter = args[vfIndex + 1];
+		expect(filter).toContain('pad=w=1280:h=720');
+	});
+
+	it('includes -i rawMp4 as first input', () => {
+		const args = buildPadVideoArgs('/raw.mp4', '/out.mp4');
+		expect(args[0]).toBe('-i');
+		expect(args[1]).toBe('/raw.mp4');
+	});
+
+	it('does not include any audio map', () => {
+		const args = buildPadVideoArgs('/raw.mp4', '/out.mp4');
+		expect(args.join(' ')).not.toContain('-map 1:');
+		expect(args.join(' ')).not.toContain('amix');
+	});
+
+	it('does not include a subtitles filter', () => {
+		const args = buildPadVideoArgs('/raw.mp4', '/out.mp4');
+		expect(args.join(' ')).not.toContain('subtitles=');
+	});
+
+	it('ends with the output file path', () => {
+		const args = buildPadVideoArgs('/raw.mp4', '/out.mp4');
+		expect(args[args.length - 1]).toBe('/out.mp4');
+	});
+});
+
+const twoSegments: SynthesisedSegment[] = [
+	{
+		audioDuration: 2.0,
+		audioFile: '/segs/seg-0.wav',
+		startTime: 0,
+		stepIndex: 0,
+		text: 'Hello.',
+	},
+	{
+		audioDuration: 3.0,
+		audioFile: '/segs/seg-1.wav',
+		startTime: 5.0,
+		stepIndex: 1,
+		text: 'Goodbye.',
+	},
+];
+
+describe('buildM4aArgs', () => {
+	it('includes one -i flag per segment', () => {
+		const args = buildM4aArgs(twoSegments, '/out.m4a');
+		const inputs = args.filter((a) => a === '-i');
+		expect(inputs).toHaveLength(2);
+	});
+
+	it('includes adelay filter for each segment', () => {
+		const args = buildM4aArgs(twoSegments, '/out.m4a');
+		const fc = args[args.indexOf('-filter_complex') + 1];
+		expect(fc).toContain('adelay=0|0');
+		expect(fc).toContain('adelay=5000|5000');
+	});
+
+	it('includes amix with normalize=0', () => {
+		const args = buildM4aArgs(twoSegments, '/out.m4a');
+		const fc = args[args.indexOf('-filter_complex') + 1];
+		expect(fc).toContain('amix');
+		expect(fc).toContain('normalize=0');
+	});
+
+	it('does not include a video map', () => {
+		const args = buildM4aArgs(twoSegments, '/out.m4a');
+		expect(args.join(' ')).not.toContain('-map 0:v');
+	});
+
+	it('ends with the output file path', () => {
+		const args = buildM4aArgs(twoSegments, '/out.m4a');
+		expect(args[args.length - 1]).toBe('/out.m4a');
+	});
+
+	it('uses AAC codec with standard sample rate', () => {
+		const args = buildM4aArgs(twoSegments, '/out.m4a');
+		expect(args).toContain('aac');
+		expect(args).toContain('44100');
+	});
+});
+
+const twoTracks: MultiVoiceTrack[] = [
+	{
+		captions: {
+			assFile: '/out/ep.alan.ass',
+			srtFile: '/out/ep.alan.srt',
+			vttFile: '/out/ep.alan.vtt',
+		},
+		segments: [
+			{
+				audioDuration: 2.0,
+				audioFile: '/segs/seg-0-alan.wav',
+				startTime: 0,
+				stepIndex: 0,
+				text: 'Hello.',
+			},
+		],
+		voice: 'alan',
+	},
+	{
+		captions: {
+			assFile: '/out/ep.alba.ass',
+			srtFile: '/out/ep.alba.srt',
+			vttFile: '/out/ep.alba.vtt',
+		},
+		segments: [
+			{
+				audioDuration: 2.0,
+				audioFile: '/segs/seg-0-alba.wav',
+				startTime: 0,
+				stepIndex: 0,
+				text: 'Hello.',
+			},
+		],
+		voice: 'alba',
+	},
+];
+
+describe('buildMkvMultiVoiceArgs', () => {
+	it('includes one SRT input per voice', () => {
+		const args = buildMkvMultiVoiceArgs('/raw.mp4', twoTracks, '/out.mkv', {
+			artist: 'Test',
+			title: 'Test',
+		});
+		const srtInputs = args.filter((a) => a.endsWith('.srt'));
+		expect(srtInputs).toHaveLength(2);
+	});
+
+	it('maps video from input 0', () => {
+		const args = buildMkvMultiVoiceArgs('/raw.mp4', twoTracks, '/out.mkv', {
+			artist: 'Test',
+			title: 'Test',
+		});
+		expect(args).toContain('-map');
+		expect(args).toContain('0:v');
+	});
+
+	it('ends with the output file path', () => {
+		const args = buildMkvMultiVoiceArgs('/raw.mp4', twoTracks, '/out.mkv', {
+			artist: 'Test',
+			title: 'Test',
+		});
+		expect(args[args.length - 1]).toBe('/out.mkv');
+	});
+
+	it('embeds container metadata via -metadata flags', () => {
+		const args = buildMkvMultiVoiceArgs('/raw.mp4', twoTracks, '/out.mkv', {
+			artist: 'Phil Sherry',
+			title: 'My Episode',
+		});
+		const metaIdx = args.indexOf('-metadata');
+		expect(metaIdx).toBeGreaterThan(-1);
+		const pairs: Record<string, string> = {};
+		for (let i = 0; i < args.length - 1; i++) {
+			if (args[i] === '-metadata') {
+				const [k, v] = args[i + 1].split('=');
+				pairs[k] = v;
+			}
+		}
+		expect(pairs['title']).toBe('My Episode');
+		expect(pairs['artist']).toBe('Phil Sherry');
+	});
+
+	it('uses -map_chapters not -map_metadata for chapter file', () => {
+		const args = buildMkvMultiVoiceArgs('/raw.mp4', twoTracks, '/out.mkv', {
+			artist: 'Test',
+			title: 'Test',
+		}, '/chapters.txt');
+		expect(args).toContain('-map_chapters');
+		// -map_metadata -1 (clear auto-copy) is correct; a positive index is not.
+		for (let i = 0; i < args.length - 1; i++) {
+			if (args[i] === '-map_metadata') {
+				expect(args[i + 1]).toBe('-1');
+			}
+		}
 	});
 });

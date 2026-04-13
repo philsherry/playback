@@ -32,7 +32,7 @@ updated.
 
 | Constant | Default | Location | Purpose |
 | -------- | ------: | -------- | ------- |
-| `AUDIO_BUFFER` | 0.5 s | `src/cli.ts` | silence after each narration clip before the next step |
+| `AUDIO_BUFFER` | 0.5 s | `src/commands/tape.ts` | silence after each narration clip before the next step |
 | `WORDS_PER_MINUTE` | 150 | `src/constants.ts` | estimated speech rate for pre-synthesis timing |
 | `MIN_NARRATION_DURATION` | 1.5 s | `src/constants.ts` | minimum clip duration to avoid too-fast narration |
 | `NARRATION_GAP` | 0.25 s | `src/timeline/index.ts` | minimum gap between consecutive audio clips in the mix |
@@ -51,10 +51,10 @@ After a pipeline run, compare actual WAV durations against pause values:
 
 ```sh
 # print a timing comparison table
-npm run playback:tape -- studio/example --audit
+npm run playback:tape -- studio/example/tape --audit
 
 # print the table and fix shortfalls in tape.yaml
-npm run playback:tape -- studio/example --audit-fix
+npm run playback:tape -- studio/example/tape --audit-fix
 ```
 
 The `--audit-fix` flag writes `max(wavDuration + AUDIO_BUFFER, existingPause)`
@@ -67,7 +67,7 @@ share the same pause value. It leaves all other lines untouched.
 Burn command labels into the video to verify timing visually:
 
 ```sh
-npm run playback:tape -- studio/example --debug-overlay
+npm run playback:tape -- studio/example/tape --debug-overlay
 ```
 
 Each label appears centred on screen for up to 2 seconds at the moment the

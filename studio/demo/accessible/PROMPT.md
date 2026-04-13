@@ -23,4 +23,4 @@ Not everyone can use the full-screen TUI. The accessible mode provides the same 
 
 ## What comes next
 
-See also the plain-text timing report (`npm run playback:edit:report -- studio/example`) for a non-interactive alternative that dumps timing data for piping into other tools.
+See also the plain-text timing report (`npm run playback:edit:report -- studio/example/tape`) for a non-interactive alternative that dumps timing data for piping into other tools.

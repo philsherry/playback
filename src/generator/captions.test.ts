@@ -5,7 +5,7 @@ vi.mock('node:fs', () => ({
 }));
 
 import { writeFileSync } from 'node:fs';
-import { generateCaptions } from './captions';
+import { generateCaptions, wrapCueText } from './captions';
 import type { SynthesisedSegment } from '../types';
 
 const mockWriteFileSync = vi.mocked(writeFileSync);
@@ -78,6 +78,50 @@ function expectNoCueOverlap(vtt: string): void {
 		).toBeLessThanOrEqual(cues[i + 1].start);
 	}
 }
+
+describe('wrapCueText', () => {
+	it('returns short text unchanged', () => {
+		expect(wrapCueText('Hello world.')).toBe('Hello world.');
+	});
+
+	it('returns text at exactly the limit unchanged', () => {
+		const text = 'a'.repeat(65);
+		expect(wrapCueText(text)).toBe(text);
+	});
+
+	it('wraps 66–130 char text at word boundary near the midpoint', () => {
+		// 78 chars total — should split into two lines each ≤ 65 chars
+		const text = 'The quick brown fox jumps over the lazy dog and then runs away fast.';
+		const result = wrapCueText(text);
+		const lines = result.split('\n');
+		expect(lines).toHaveLength(2);
+		expect(lines[0].length).toBeLessThanOrEqual(65);
+		expect(lines[1].length).toBeLessThanOrEqual(65);
+	});
+
+	it('caps very long text at exactly 2 lines', () => {
+		// 160-char sentence — must produce exactly 2 lines
+		const text =
+			'And --verbose adds detail: step count, configured voices, and the resolved output path. ' +
+			'Useful when checking that a tape is wired up correctly before committing to a full build.';
+		const result = wrapCueText(text);
+		expect(result.split('\n')).toHaveLength(2);
+	});
+
+	it('does not introduce leading or trailing whitespace on any line', () => {
+		const text = 'superlongwordthatexceedslimit ' + 'short '.repeat(10).trim();
+		const lines = wrapCueText(text).split('\n');
+		for (const line of lines) {
+			expect(line).not.toMatch(/^\s|\s$/);
+		}
+	});
+
+	it('handles a single very long word without throwing', () => {
+		const text = 'a'.repeat(200);
+		expect(() => wrapCueText(text)).not.toThrow();
+		expect(wrapCueText(text).split('\n')).toHaveLength(2);
+	});
+});
 
 describe('generateCaptions', () => {
 	beforeEach(() => {
@@ -183,6 +227,49 @@ describe('generateCaptions', () => {
 		expect(mockWriteFileSync).toHaveBeenCalledTimes(3);
 	});
 
+	describe('line wrapping', () => {
+		const longSegment: SynthesisedSegment[] = [
+			{
+				audioDuration: 8.0,
+				audioFile: '/output/long.wav',
+				startTime: 0,
+				stepIndex: 0,
+				text:
+					'And --verbose adds detail: step count, configured voices, and the resolved output path. ' +
+					'Useful when checking that a tape is wired up correctly before committing to a full build.',
+			},
+		];
+
+		it('wraps long cue text to at most 2 lines in VTT output', () => {
+			generateCaptions(longSegment, '/output', 'ep');
+			const lines = capturedContent('.vtt').split('\n');
+			const cueTextLine = lines.find(
+				(l) => l.includes('resolved') || l.includes('Useful')
+			);
+			// Text must not be one long line in the VTT file
+			expect(cueTextLine).toBeDefined();
+			expect(cueTextLine!.length).toBeLessThanOrEqual(90);
+		});
+
+		it('uses \\N line breaks in ASS output', () => {
+			generateCaptions(longSegment, '/output', 'ep');
+			const content = capturedContent('.ass');
+			// ASS hard line break
+			expect(content).toContain('\\N');
+		});
+
+		it('wraps long cue text in SRT output', () => {
+			generateCaptions(longSegment, '/output', 'ep');
+			const srt = capturedContent('.srt');
+			// SRT uses \n — there should be a newline inside the cue text block
+			const lines = srt.split('\n');
+			const hasWrappedLine = lines.some(
+				(l) => l.length > 0 && l.length < 90 && !l.match(/^\d+$/) && !l.includes('-->')
+			);
+			expect(hasWrappedLine).toBe(true);
+		});
+	});
+
 	describe('cue overlap', () => {
 		it('produces no overlapping cues when segments fit within their gaps', () => {
 			// 'Hello world.' → 2 words → narrationDuration = 1.5s (MIN).
@@ -191,20 +278,9 @@ describe('generateCaptions', () => {
 			expectNoCueOverlap(capturedContent('.vtt'));
 		});
 
-		// This test documents the known cue-overlap bug (see VOICE.md §subtitle cue overlap).
-		// narrationDuration uses a word-count estimate that can exceed the gap to the next
-		// segment. When it does, the generated VTT cues overlap.
-		//
-		// The test FAILS with the current implementation: buildCues() uses
-		// narrationDuration(text) as the end time, which here produces 4 s for a 10-word
-		// segment while the next segment starts at only 3 s.
-		//
-		// The fix should cap each cue's end time at min(estimate, nextSegment.startTime)
-		// or derive end times from the real audioDuration instead of the estimate.
 		it('produces no overlapping cues when narration estimate exceeds the next segment gap', () => {
-			// 10 words → narrationDuration = 10/150*60 = 4 s.
-			// Next segment starts at 3 s → estimate overshoots by 1 s.
-			// audioDuration (2.5 s) would fit, but buildCues() ignores it.
+			// 10 words → narrationDuration estimate = 4 s, but audioDuration (2.5 s) is used.
+			// Next segment starts at 3 s → cue ends at 2.5 s → no overlap.
 			const tightSegments: SynthesisedSegment[] = [
 				{
 					audioDuration: 2.5,

@@ -24,14 +24,16 @@ The pipeline generates a full output set per voice. Omit the field to use the
 
 | Voice | Quality | Sample rate |
 |---|---|---|
+| `alan` | medium | 22 050 Hz |
+| `alba` | medium | 22 050 Hz |
 | `northern_english_male` | medium | 22 050 Hz |
 | `southern_english_female` | low | 22 050 Hz |
 
 `southern_english_female` only has a `low` quality model. The pipeline handles
 this automatically — no config change needed.
 
-Two more models ship in `voices/` (`alba`, `alan`) but the pipeline does not
-yet use them.
+All four voices have tuned `lengthScale`, `noiseScale`, and `noiseW` entries in
+`VOICE_CONFIG` in `src/runner/piper.ts` and are fully supported by the pipeline.
 
 ---
 
