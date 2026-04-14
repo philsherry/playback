@@ -29,6 +29,8 @@ export interface VoiceEntry {
 	locale: string;
 	model: string;
 	quality: string;
+	/** Speaker ID for multi-speaker models (passed as piper --speaker). Omit for single-speaker models. */
+	speaker?: number;
 	url: string;
 }
 
@@ -144,4 +146,20 @@ export function getVoiceModel(voiceId: string): string {
 		throw new Error(`Unknown voice "${voiceId}". Available: ${getVoiceIds().join(', ')}`);
 	}
 	return entry.model;
+}
+
+/**
+ * Returns the speaker ID for a given voice identifier, or `undefined` for
+ * single-speaker models. Multi-speaker models (e.g. `en_GB-semaine-medium`)
+ * require a speaker ID to select the correct voice within the model file.
+ * @param voiceId - Voice identifier from the catalogue.
+ * @returns Speaker ID, or `undefined` for single-speaker models.
+ * @throws {Error} If the voice is not in the catalogue.
+ */
+export function getVoiceSpeaker(voiceId: string): number | undefined {
+	const entry = loadVoiceCatalogue()[voiceId];
+	if (!entry) {
+		throw new Error(`Unknown voice "${voiceId}". Available: ${getVoiceIds().join(', ')}`);
+	}
+	return entry.speaker;
 }

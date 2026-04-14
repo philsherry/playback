@@ -4,7 +4,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import type { Voice } from '../schema/meta';
 import type { NarrationSegment, SynthesisedSegment } from '../types';
 import { applySubstitutions } from '../substitutions';
-import { getVoiceModel } from '../voices';
+import { getVoiceModel, getVoiceSpeaker } from '../voices';
 import { voicesCacheDir } from '../paths';
 import { FFMPEG_FULL_BIN } from '../constants';
 import { logWarn } from '../logger';
@@ -44,6 +44,15 @@ type VoiceSynthConfig = {
 };
 
 /**
+ * Default synthesis config used when a voice has no entry in `VOICE_CONFIG`.
+ * Allows consumer-defined voices (e.g. multi-speaker models added in a
+ * project-local `voices.yaml`) to work without requiring this package to
+ * enumerate them. Tune per-voice entries in `VOICE_CONFIG` if the defaults
+ * are not suitable after listening.
+ */
+const DEFAULT_SYNTH_CONFIG: VoiceSynthConfig = { lengthScale: 1.0, noiseScale: 0.1, noiseW: 0.6 };
+
+/**
  * Per-voice synthesis configuration.
  *
  * Voice model filenames and quality levels are sourced from `voices.yaml` via
@@ -55,6 +64,9 @@ type VoiceSynthConfig = {
 export const VOICE_CONFIG: Record<string, VoiceSynthConfig> = {
 	alan: { lengthScale: 0.82, noiseScale: 0.1, noiseW: 0.6 },
 	alba: { lengthScale: 1.0, noiseScale: 0.1, noiseW: 0.6 },
+	// ARU Speech Corpus (Liverpool) — Received Pronunciation, 12 speakers.
+	// Starting values; tune after listening.
+	aru_09: { lengthScale: 1.0, noiseScale: 0.1, noiseW: 0.6 },
 	northern_english_male: { lengthScale: 1.0, noiseScale: 0.1, noiseW: 0.6 },
 	southern_english_female: { lengthScale: 1.0, noiseScale: 0.1, noiseW: 0.6 },
 };
@@ -101,6 +113,7 @@ function resolveModel(voice: Voice, voicesDir: string): string {
  * @param noiseScale - Phonation/timbre variance (`--noise_scale`).
  * @param noiseW - Phoneme-duration variance (`--noise_w`).
  * @param lengthScale - Speaking-rate multiplier (`--length_scale`).
+ * @param speakerId - Speaker index for multi-speaker models (`--speaker`). Omit for single-speaker models.
  * @returns A promise that resolves when synthesis completes successfully.
  */
 function synthesise(
@@ -109,26 +122,29 @@ function synthesise(
 	outputFile: string,
 	noiseScale: number,
 	noiseW: number,
-	lengthScale: number
+	lengthScale: number,
+	speakerId?: number
 ): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const child = spawn(
-			'piper',
-			[
-				'--model',
-				modelPath,
-				'--output_file',
-				outputFile,
-				// Per-voice VITS tuning — see VOICE_CONFIG for rationale.
-				'--noise_scale',
-				String(noiseScale),
-				'--noise_w',
-				String(noiseW),
-				'--length_scale',
-				String(lengthScale)
-			],
-			{ stdio: ['pipe', 'inherit', 'pipe'] }
-		);
+		const piperArgs = [
+			'--model',
+			modelPath,
+			'--output_file',
+			outputFile,
+			// Per-voice VITS tuning — see VOICE_CONFIG for rationale.
+			'--noise_scale',
+			String(noiseScale),
+			'--noise_w',
+			String(noiseW),
+			'--length_scale',
+			String(lengthScale),
+		];
+
+		if (speakerId !== undefined) {
+			piperArgs.push('--speaker', String(speakerId));
+		}
+
+		const child = spawn('piper', piperArgs, { stdio: ['pipe', 'inherit', 'pipe'] });
 
 		let stderr = '';
 
@@ -226,7 +242,8 @@ export async function runPiper(
 	}
 
 	const modelPath = resolveModel(voice, voicesDir);
-	const { lengthScale, noiseScale, noiseW } = VOICE_CONFIG[voice];
+	const { lengthScale, noiseScale, noiseW } = VOICE_CONFIG[voice] ?? DEFAULT_SYNTH_CONFIG;
+	const speakerId = getVoiceSpeaker(voice);
 	const results: SynthesisedSegment[] = [];
 
 	const segmentsDir = join(outputDir, 'segments');
@@ -246,7 +263,8 @@ export async function runPiper(
 			audioFile,
 			noiseScale,
 			noiseW,
-			lengthScale
+			lengthScale,
+			speakerId
 		);
 
 		const audioDuration = probeAudioDuration(audioFile);

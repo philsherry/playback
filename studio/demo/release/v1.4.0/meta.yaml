@@ -1,0 +1,21 @@
+---
+description: >
+  Playback 1.4.0 adds multi-speaker piper voice support — one model file,
+  multiple characters. Define them in your project-local voices.yaml;
+  the pipeline handles the rest.
+episode: 1
+locale: en-GB
+poster: 30
+series: release
+tags:
+  - multi-speaker
+  - piper
+  - release
+  - voices
+title: "Multi-speaker voices — v1.4.0"
+version: "1.4.0"
+vhsCwd: "."
+vhs:
+  typingSpeed: "15ms"
+voices:
+  - aru_09

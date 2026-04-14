@@ -50,3 +50,16 @@ voices:
     model: en_GB-southern_english_female-low
     quality: low
     url: en/en_GB/southern_english_female/low
+
+  ## Multi-speaker example — Liverpool ARU Speech Corpus (12 speakers, Received Pronunciation).
+  ## Each speaker entry shares the same model and url; only the key name and
+  ## speaker ID differ. The model file downloads once regardless of how many
+  ## speaker entries reference it. Speaker IDs come from the speaker_id_map in
+  ## the model's .onnx.json file.
+  aru_09:
+    gender: female
+    locale: en-GB
+    model: en_GB-aru-medium
+    quality: medium
+    speaker: 4
+    url: en/en_GB/aru/medium

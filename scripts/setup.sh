@@ -143,6 +143,16 @@ if [[ ! -f "${XDG_VOICES_YAML}" ]]; then
   info "Voice catalogue bootstrapped → ${XDG_VOICES_YAML}"
 else
   info "Voice catalogue: ${XDG_VOICES_YAML}"
+  # Sync any new voices added to voices.example.yaml since last setup.
+  SYNC_SCRIPT="$(dirname "$0")/setup/sync-voices.cjs"
+  if [[ -f "${SYNC_SCRIPT}" ]]; then
+    ADDED=$(node "${SYNC_SCRIPT}" "${XDG_VOICES_YAML}" 2>/dev/null || true)
+    if [[ -n "${ADDED}" ]]; then
+      while IFS= read -r voice_name; do
+        info "Voice added to catalogue: ${voice_name}"
+      done <<< "${ADDED}"
+    fi
+  fi
 fi
 
 # ── Model download directory ──────────────────────────────────────────────────
