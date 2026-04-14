@@ -10,14 +10,22 @@ vi.mock('node:fs', () => ({
 	mkdirSync: vi.fn(),
 }));
 
+vi.mock('../voices', () => ({
+	getVoiceModel: vi.fn().mockReturnValue('en_GB-northern_english_male-medium'),
+	getVoiceSpeaker: vi.fn().mockReturnValue(undefined),
+}));
+
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { getVoiceModel, getVoiceSpeaker } from '../voices';
 import { runPiper, PiperError, VOICE_CONFIG } from './piper';
 import type { NarrationSegment } from '../types';
 
 const mockSpawn = vi.mocked(spawn);
 const mockExecFileSync = vi.mocked(execFileSync);
 const mockExistsSync = vi.mocked(existsSync);
+const mockGetVoiceModel = vi.mocked(getVoiceModel);
+const mockGetVoiceSpeaker = vi.mocked(getVoiceSpeaker);
 
 /**
  * Minimal child-process stub that triggers the 'close' handler on the next
@@ -49,6 +57,8 @@ describe('runPiper', () => {
 		mockExistsSync.mockReturnValue(true);
 		mockExecFileSync.mockReturnValue('2.5\n' as ReturnType<typeof execFileSync>);
 		mockSpawn.mockReturnValue(makeChildMock());
+		mockGetVoiceModel.mockReturnValue('en_GB-northern_english_male-medium');
+		mockGetVoiceSpeaker.mockReturnValue(undefined);
 	});
 
 	it('returns an empty array immediately when given no segments', async () => {
@@ -174,5 +184,38 @@ describe('runPiper', () => {
 
 		mockSpawn.mockReturnValue(enoentChild);
 		await expect(runPiper([segment], '/output')).rejects.toBeInstanceOf(PiperError);
+	});
+
+	describe('multi-speaker support', () => {
+		it('does not pass --speaker for single-speaker voices', async () => {
+			// default: mockGetVoiceSpeaker returns undefined
+			await runPiper([segment], '/output');
+			const args = mockSpawn.mock.calls[0][1] as string[];
+			expect(args).not.toContain('--speaker');
+		});
+
+		it('passes --speaker with the correct ID for multi-speaker voices', async () => {
+			mockGetVoiceSpeaker.mockReturnValue(3);
+			await runPiper([segment], '/output');
+			const args = mockSpawn.mock.calls[0][1] as string[];
+			expect(args).toContain('--speaker');
+			expect(args[args.indexOf('--speaker') + 1]).toBe('3');
+		});
+	});
+
+	describe('VOICE_CONFIG fallback', () => {
+		it('uses default synth config for voices not listed in VOICE_CONFIG', async () => {
+			// 'semaine_obaidah' has no entry in VOICE_CONFIG — should use fallback, not crash.
+			mockGetVoiceModel.mockReturnValue('en_GB-semaine-medium');
+			const result = await runPiper([segment], '/output', 'semaine_obaidah');
+			expect(result).toHaveLength(1);
+		});
+
+		it('uses length_scale 1.0 as the fallback default', async () => {
+			mockGetVoiceModel.mockReturnValue('en_GB-semaine-medium');
+			await runPiper([segment], '/output', 'semaine_obaidah');
+			const args = mockSpawn.mock.calls[0][1] as string[];
+			expect(args[args.indexOf('--length_scale') + 1]).toBe('1');
+		});
 	});
 });

@@ -22,18 +22,28 @@ The pipeline generates a full output set per voice. Omit the field to use the
 
 ## Available voices
 
-| Voice | Quality | Sample rate |
-|---|---|---|
-| `alan` | medium | 22 050 Hz |
-| `alba` | medium | 22 050 Hz |
-| `northern_english_male` | medium | 22 050 Hz |
-| `southern_english_female` | low | 22 050 Hz |
+| Voice | Quality | Sample rate | Notes |
+|---|---|---|---|
+| `alan` | medium | 22 050 Hz | |
+| `alba` | medium | 22 050 Hz | |
+| `northern_english_male` | medium | 22 050 Hz | |
+| `southern_english_female` | low | 22 050 Hz | No `medium` model exists |
+| `aru_09` | medium | 22 050 Hz | Multi-speaker model; see below |
 
 `southern_english_female` only has a `low` quality model. The pipeline handles
 this automatically — no config change needed.
 
-All four voices have tuned `lengthScale`, `noiseScale`, and `noiseW` entries in
+All five voices have tuned `lengthScale`, `noiseScale`, and `noiseW` entries in
 `VOICE_CONFIG` in `src/runner/piper.ts` and are fully supported by the pipeline.
+
+### Multi-speaker voices (`aru_09`)
+
+`aru_09` uses the Liverpool ARU Speech Corpus model (`en_GB-aru-medium`), which
+contains 12 speakers. The `speaker` field in `voices.example.yaml` selects
+speaker 4 (female, Received Pronunciation). The model file downloads once
+regardless of how many speaker entries reference it. To add other ARU speakers,
+copy the `aru_09` block in your XDG catalogue, change the key name, and set a
+different `speaker` ID (from the `speaker_id_map` in `en_GB-aru-medium.onnx.json`).
 
 ---
 

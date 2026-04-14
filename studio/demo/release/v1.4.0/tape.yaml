@@ -1,0 +1,49 @@
+---
+title: "Multi-speaker voices — v1.4.0"
+output: studio/demo/release/v1.4.0
+steps:
+  # Intro — show the release notes opener.
+  - action: narrate
+    narration: >
+      Playback 1.4.0 adds multi-speaker piper voice support.
+      One model file. Multiple characters.
+    commands:
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.4.0/RELEASE_NOTES.md
+    pause: 1
+
+  # Section 1 — one model, multiple characters.
+  - action: narrate
+    narration: >
+      Some piper models pack multiple distinct voices into a single model file.
+      The A.R.U. model ships with twelve speakers from the Liverpool speech
+      corpus — each a distinct voice.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.4.0/RELEASE_NOTES.md 1
+    pause: 1
+
+  # Section 2 — voices.yaml setup.
+  - action: narrate
+    narration: >
+      Define them in your project-local voices.yaml. Reference them in meta.yaml
+      exactly as you would any other voice. Playback passes the speaker ID to
+      piper automatically.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.4.0/RELEASE_NOTES.md 2
+    pause: 1
+
+  # Section 3 — no breaking changes.
+  - action: narrate
+    narration: >
+      The speaker field is optional. Single-speaker voices need no changes.
+      Consumer-defined voices now also work without requiring this package to
+      enumerate them.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.4.0/RELEASE_NOTES.md 3
+
+  # Outro.
+  - action: comment
+    narration: >-
+      That's playback 1.4.0 — multi-speaker voices, no breaking changes.
