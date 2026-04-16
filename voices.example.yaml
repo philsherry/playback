@@ -21,6 +21,15 @@
 ##
 ## The key (e.g. "northern_english_male") is what tapes reference in
 ## meta.yaml's `voices` field.
+##
+## Optional VITS synthesis tuning per entry:
+##   lengthScale  — speaking-rate multiplier (default: 1.0). Lower = faster.
+##   noiseScale   — phonation/timbre variance (default: 0.1). Low = consistent speaker identity.
+##   noiseW       — phoneme-duration variance (default: 0.6). Moderate = natural rhythm.
+##
+## When any of these are set on a voices.yaml entry, they take precedence over
+## the built-in VOICE_CONFIG table in the playback package. This lets consumer
+## projects tune synthesis for their own voices without modifying playback itself.
 
 voices:
   alan:

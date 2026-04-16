@@ -77,16 +77,30 @@ export const MetaSchema = v.object({
 	 * more vertical space, a smaller font, or a different theme.
 	 */
 	vhs: v.optional(v.object({
+		/** Terminal window border radius in pixels. Default: 10 (TERMINAL_BORDER_RADIUS). */
+		borderRadius: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
+		/** Font family name for the VHS terminal. Default: `"FiraCode Nerd Font Mono"`. Must not contain double-quote characters. */
+		fontFamily: v.optional(v.pipe(v.string(), v.check((s) => !s.includes('"'), 'vhs.fontFamily cannot contain double-quote characters'))),
 		/** Font size in pixels. Default: 16 (TERMINAL_FONT_SIZE). */
 		fontSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+		/** Recording framerate. Default: 30 (FRAMERATE). */
+		framerate: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
 		/** Recording height in pixels. Default: 660 (TERMINAL_HEIGHT). */
 		height: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+		/** Terminal window margin in pixels. Default: 20 (TERMINAL_MARGIN). */
+		margin: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
+		/** Terminal window margin fill colour (e.g. `"#1a1b26"`). Default: `"#9ece6a"`. Must not contain double-quote characters. */
+		marginFill: v.optional(v.pipe(v.string(), v.check((s) => !s.includes('"'), 'vhs.marginFill cannot contain double-quote characters'))),
 		/** Shell for the VHS terminal session (e.g. `"bash"`). Default: `"zsh"`. Must not contain double-quote characters. */
 		shell: v.optional(v.pipe(v.string(), v.check((s) => !s.includes('"'), 'vhs.shell cannot contain double-quote characters — use a shell path without quotes'))),
 		/** JSON theme string for VHS `Set Theme`. Default: Amber theme. */
 		theme: v.optional(v.string()),
 		/** Typing speed (e.g. `"50ms"`). Default: `"75ms"`. */
 		typingSpeed: v.optional(v.string()),
+		/** Recording width in pixels. Default: 1280 (VIDEO_WIDTH). */
+		width: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1))),
+		/** Terminal window bar style (e.g. `"Colorful"`, `"Rings"`, `"Hidden"`). Default: `"Colorful"`. */
+		windowBar: v.optional(v.string()),
 	})),
 	vhsCwd: v.optional(v.string()),
 	/**

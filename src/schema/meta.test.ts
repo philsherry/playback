@@ -113,11 +113,65 @@ describe('MetaSchema', () => {
 		});
 
 		it('rejects vhs.shell containing double-quote characters', () => {
-			// VHS Set Shell "..." has no escape for " — the parser would terminate
-			// the string early, producing an invalid .tape file.
 			const result = v.safeParse(MetaSchema, {
 				title: 'My Episode',
 				vhs: { shell: 'bash -lc "exec zsh"' },
+			});
+			expect(result.success).toBe(false);
+		});
+
+		it('accepts vhs.fontFamily', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { fontFamily: 'ProggyClean TT NF' },
+			});
+			expect(result.success).toBe(true);
+		});
+
+		it('rejects vhs.fontFamily containing double-quote characters', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { fontFamily: 'Font "Name"' },
+			});
+			expect(result.success).toBe(false);
+		});
+
+		it('accepts vhs.width, vhs.framerate', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { framerate: 60, width: 720 },
+			});
+			expect(result.success).toBe(true);
+		});
+
+		it('accepts vhs.borderRadius, vhs.margin, vhs.marginFill, vhs.windowBar', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { borderRadius: 0, margin: 0, marginFill: '#1a1b26', windowBar: 'Hidden' },
+			});
+			expect(result.success).toBe(true);
+		});
+
+		it('rejects vhs.marginFill containing double-quote characters', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { marginFill: '#abc"def' },
+			});
+			expect(result.success).toBe(false);
+		});
+
+		it('rejects vhs.borderRadius below 0', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { borderRadius: -1 },
+			});
+			expect(result.success).toBe(false);
+		});
+
+		it('rejects vhs.framerate below 1', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { framerate: 0 },
 			});
 			expect(result.success).toBe(false);
 		});

@@ -101,14 +101,39 @@ Optional object in `meta.yaml` that overrides default VHS recording constants fo
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `height` | number | 660 | Recording height in pixels |
+| `borderRadius` | number | 10 | Terminal window border radius in pixels |
+| `fontFamily` | string | `"FiraCode Nerd Font Mono"` | Font family name. Must not contain double-quote characters |
 | `fontSize` | number | 16 | Font size in pixels |
+| `framerate` | number | 30 | Recording framerate |
+| `height` | number | 660 | Recording height in pixels |
+| `margin` | number | 20 | Terminal window margin in pixels |
+| `marginFill` | string | `"#9ece6a"` | Margin fill colour. Must not contain double-quote characters |
+| `shell` | string | `"zsh"` | Shell for the VHS terminal session. Must not contain double-quote characters |
 | `theme` | string | Amber theme | JSON theme string for VHS `Set Theme` |
 | `typingSpeed` | string | `"75ms"` | Typing speed per character |
+| `width` | number | 1280 | Recording width in pixels |
+| `windowBar` | string | `"Colorful"` | Window bar style (e.g. `"Colorful"`, `"Rings"`, `"Hidden"`) |
 
 **Poster image priority:** `poster.png` in the tape directory → `poster` frame number in `meta.yaml` → no poster.
 
 **Voices:** `northern_english_male` by default. The available voices come from the merged catalogue: `$XDG_CONFIG_HOME/playback/voices.yaml` as the user-level base, with an optional project-local `voices.yaml` (gitignored) on top. Default voices: `alan`, `alba`, `northern_english_male`, `southern_english_female`.
+
+**Per-voice VITS tuning:** voice entries in `voices.yaml` may include optional synthesis tuning parameters. When present, these take precedence over the built-in `VOICE_CONFIG` table, allowing consumer projects to tune synthesis without modifying the playback package:
+
+```yaml
+voices:
+  my_character:
+    gender: female
+    lengthScale: 0.9   # speaking-rate multiplier — lower = faster
+    locale: en-GB
+    model: en_GB-alba-medium
+    noiseScale: 0.05   # phonation/timbre variance — lower = consistent identity
+    noiseW: 0.4        # phoneme-duration variance — moderate = natural rhythm
+    quality: medium
+    url: en/en_GB/alba/medium
+```
+
+Omit any field to fall back to the built-in default for that voice, or to `DEFAULT_SYNTH_CONFIG` (`lengthScale: 1.0`, `noiseScale: 0.1`, `noiseW: 0.6`) if the voice has no built-in entry.
 
 ## PROMPT.md format
 

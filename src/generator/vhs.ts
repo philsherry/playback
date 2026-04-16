@@ -71,16 +71,16 @@ export function generateVhsTape(parsed: ParsedTape): string {
 
 	lines.push(`Output ./${basename(tape.output)}.raw.mp4`);
 	lines.push('');
-	lines.push(`Set Width ${VIDEO_WIDTH}`);
+	lines.push(`Set Width ${vhsOverrides?.width ?? VIDEO_WIDTH}`);
 	lines.push(`Set Height ${vhsOverrides?.height ?? TERMINAL_HEIGHT}`);
-	lines.push(`Set Framerate ${FRAMERATE}`);
+	lines.push(`Set Framerate ${vhsOverrides?.framerate ?? FRAMERATE}`);
 	lines.push(`Set FontSize ${vhsOverrides?.fontSize ?? TERMINAL_FONT_SIZE}`);
-	lines.push(`Set FontFamily "${TERMINAL_FONT}"`);
+	lines.push(`Set FontFamily "${vhsOverrides?.fontFamily ?? TERMINAL_FONT}"`);
 	lines.push(`Set Theme '${vhsOverrides?.theme ?? TERMINAL_THEME}'`);
-	lines.push(`Set WindowBar ${TERMINAL_WINDOW_BAR}`);
-	lines.push(`Set BorderRadius ${TERMINAL_BORDER_RADIUS}`);
-	lines.push(`Set Margin ${TERMINAL_MARGIN}`);
-	lines.push(`Set MarginFill "${TERMINAL_MARGIN_FILL}"`);
+	lines.push(`Set WindowBar ${vhsOverrides?.windowBar ?? TERMINAL_WINDOW_BAR}`);
+	lines.push(`Set BorderRadius ${vhsOverrides?.borderRadius ?? TERMINAL_BORDER_RADIUS}`);
+	lines.push(`Set Margin ${vhsOverrides?.margin ?? TERMINAL_MARGIN}`);
+	lines.push(`Set MarginFill "${vhsOverrides?.marginFill ?? TERMINAL_MARGIN_FILL}"`);
 	lines.push(`Set Shell "${vhsOverrides?.shell ?? DEFAULT_SHELL}"`);
 	lines.push(`Set TypingSpeed ${vhsOverrides?.typingSpeed ?? TYPING_SPEED}`);
 	lines.push('');
