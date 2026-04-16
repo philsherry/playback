@@ -91,6 +91,13 @@ export const MetaSchema = v.object({
 		margin: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0))),
 		/** Terminal window margin fill colour (e.g. `"#1a1b26"`). Default: `"#9ece6a"`. Must not contain double-quote characters. */
 		marginFill: v.optional(v.pipe(v.string(), v.check((s) => !s.includes('"'), 'vhs.marginFill cannot contain double-quote characters'))),
+		/**
+		 * Raw VHS directives injected verbatim after the Set block, before step
+		 * content. Each string is one VHS directive line (e.g. `"Hide"`, `"Show"`,
+		 * `"Type \"PS1=''\""`, `"Sleep 0.5"`). Used to inject Hide/Show blocks
+		 * for terminal setup that should not appear in the recording.
+		 */
+		preamble: v.optional(v.array(v.string())),
 		/** Shell for the VHS terminal session (e.g. `"bash"`). Default: `"zsh"`. Must not contain double-quote characters. */
 		shell: v.optional(v.pipe(v.string(), v.check((s) => !s.includes('"'), 'vhs.shell cannot contain double-quote characters — use a shell path without quotes'))),
 		/** JSON theme string for VHS `Set Theme`. Default: Amber theme. */

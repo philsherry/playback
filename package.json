@@ -102,5 +102,5 @@
 		"validate": "tsx src/cli.ts validate"
 	},
 	"type": "module",
-	"version": "1.4.1"
+	"version": "1.5.0"
 }

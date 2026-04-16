@@ -1,0 +1,21 @@
+---
+description: >
+  Playback 1.5.0 adds vhs.preamble — an array of raw VHS directives injected
+  before step content. Enables freeform recordings with a clean, promptless
+  terminal surface.
+episode: 1
+locale: en-GB
+poster: 30
+series: release
+tags:
+  - freeform
+  - preamble
+  - release
+  - vhs
+title: "VHS preamble support — v1.5.0"
+version: "1.5.0"
+vhsCwd: "."
+vhs:
+  typingSpeed: "15ms"
+voices:
+  - northern_english_male

@@ -1,0 +1,38 @@
+---
+title: "VHS preamble support — v1.5.0"
+output: studio/demo/release/v1.5.0
+steps:
+  # Intro — show the release notes opener.
+  - action: narrate
+    narration: >
+      Playback 1.5.0 adds vhs.preamble — raw VHS directives injected
+      before any step content.
+    commands:
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.5.0/RELEASE_NOTES.md
+    pause: 1
+
+  # Section 1 — what it does.
+  - action: narrate
+    narration: >
+      Add a preamble array to the vhs block in meta.yaml. Each string is one
+      VHS directive, emitted verbatim after the Set block and before the first step.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.5.0/RELEASE_NOTES.md 1
+    pause: 1
+
+  # Section 2 — why it exists.
+  - action: narrate
+    narration: >
+      Freeform recordings type speech directly into the terminal. Without setup,
+      each sentence triggers a command not found error and the shell prompt appears
+      before the text. The preamble hides that setup and resumes on a clean surface.
+    commands:
+      - clear
+      - node scripts/release/release-notes.cjs studio/demo/release/v1.5.0/RELEASE_NOTES.md 2
+    pause: 1
+
+  # Outro.
+  - action: comment
+    narration: >-
+      That's playback 1.5.0 — vhs.preamble, no breaking changes.
