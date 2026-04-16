@@ -1,59 +1,59 @@
-# Release notes — v1.4.0
+# Release notes — v1.4.x
 
-## Multi-speaker piper voices
+## Full VHS override coverage and per-voice synthesis tuning
 
-Playback 1.4.0 adds optional `speaker` support to the piper voice pipeline.
-Some piper models pack multiple distinct characters into a single `.onnx` file.
-You can now select the one you want by adding a `speaker` field to your voice entry.
+Playback 1.4.1 fills two extensibility gaps needed by consumer projects that
+use playback as a library.
 
-### One model, multiple characters
+### All VHS constants are now overridable per tape
 
-The `en_GB-semaine-medium` model ships with four characters — Obaidah, Poppy,
-Spike, and Prudence — each with a different voice and temperament. Previously,
-Playback had no way to select between them: piper would always use speaker zero.
+The `vhs` block in `meta.yaml` covered five recording constants.
+Every remaining hardcoded VHS constant now has an override:
 
-Now you can name each character as a separate voice entry in your `voices.yaml`,
-pointing at the same model file with a different `speaker` value:
+```yaml
+vhs:
+  borderRadius: 0
+  fontFamily: "ProggyClean TT NF"
+  fontSize: 14
+  framerate: 60
+  height: 480
+  margin: 0
+  marginFill: "#1a1b26"
+  shell: bash
+  theme: '{"background":"#1a1b26",...}'
+  typingSpeed: 50ms
+  width: 720
+  windowBar: Hidden
+```
+
+All fields remain optional — omit any to keep the project default. This is
+the complete set; there are no remaining hardcoded VHS constants that a tape
+cannot override.
+
+### Per-voice synthesis tuning in `voices.yaml`
+
+Consumer projects can now tune piper synthesis parameters directly in their
+own `voices.yaml`, without modifying the playback package or adding entries to
+the internal `VOICE_CONFIG` table:
 
 ```yaml
 voices:
-  semaine_obaidah:
+  tars:
     gender: male
+    lengthScale: 0.9    # faster — TARS: clipped, utilitarian
     locale: en-GB
-    model: en_GB-semaine-medium
+    model: en_GB-alan-medium
+    noiseScale: 0.05    # locks speaker identity across sentences
+    noiseW: 0.4
     quality: medium
-    url: en/en_GB/semaine/medium
-    speaker: 0
-
-  semaine_poppy:
-    gender: female
-    locale: en-GB
-    model: en_GB-semaine-medium
-    quality: medium
-    url: en/en_GB/semaine/medium
-    speaker: 1
+    url: en/en_GB/alan/medium
 ```
 
-All four entries share the same model file. Playback downloads it once.
-Each entry is a distinct voice you can assign to a tape.
+The three VITS parameters (`lengthScale`, `noiseScale`, `noiseW`) are all
+optional. Set only what you need — unset fields fall back to the built-in
+value for that voice, or to the package default if the voice has no built-in
+entry. The priority chain is:
 
-### Setting up a multi-speaker voice
-
-Define your speaker voices in a project-local `voices.yaml` (the one that stays
-out of git), then reference one of them in `meta.yaml` as you would any voice:
-
-```yaml
-voices:
-  - semaine_obaidah
-```
-
-The selected character narrates the whole tape. Run `npm run setup -- --local`
-to download the model file. Playback passes `--speaker 0` (or whichever ID you
-set) to piper automatically.
-
-### No changes required for existing voices
-
-The `speaker` field is optional. Single-speaker voices continue to work exactly
-as before — no field needed, no migration required. If a voice has no entry in
-the internal tuning table, Playback now applies sensible defaults rather than
-crashing, so consumer-defined voices work without any changes to this package.
+1. `voices.yaml` entry fields (highest — consumer project wins)
+2. Built-in `VOICE_CONFIG` table
+3. `DEFAULT_SYNTH_CONFIG` (`lengthScale: 1.0`, `noiseScale: 0.1`, `noiseW: 0.6`)

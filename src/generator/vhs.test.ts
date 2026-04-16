@@ -42,6 +42,77 @@ describe('generateVhsTape', () => {
 			expect(result).toContain("Set Theme '");
 		});
 
+		it('sets window chrome from constants', () => {
+			const result = generateVhsTape(baseTape);
+			expect(result).toContain('Set WindowBar Colorful');
+			expect(result).toContain('Set BorderRadius 10');
+			expect(result).toContain('Set Margin 20');
+			expect(result).toContain('Set MarginFill "#9ece6a"');
+		});
+
+		it('uses vhs.width override when set', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: { ...baseTape.meta, vhs: { width: 720 } },
+			};
+			expect(generateVhsTape(tape)).toContain('Set Width 720');
+			expect(generateVhsTape(tape)).not.toContain('Set Width 1280');
+		});
+
+		it('uses vhs.framerate override when set', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: { ...baseTape.meta, vhs: { framerate: 60 } },
+			};
+			expect(generateVhsTape(tape)).toContain('Set Framerate 60');
+			expect(generateVhsTape(tape)).not.toContain('Set Framerate 30');
+		});
+
+		it('uses vhs.fontFamily override when set', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: { ...baseTape.meta, vhs: { fontFamily: 'ProggyClean TT NF' } },
+			};
+			expect(generateVhsTape(tape)).toContain('Set FontFamily "ProggyClean TT NF"');
+			expect(generateVhsTape(tape)).not.toContain('Set FontFamily "FiraCode Nerd Font Mono"');
+		});
+
+		it('uses vhs.windowBar override when set', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: { ...baseTape.meta, vhs: { windowBar: 'Hidden' } },
+			};
+			expect(generateVhsTape(tape)).toContain('Set WindowBar Hidden');
+			expect(generateVhsTape(tape)).not.toContain('Set WindowBar Colorful');
+		});
+
+		it('uses vhs.borderRadius override when set', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: { ...baseTape.meta, vhs: { borderRadius: 0 } },
+			};
+			expect(generateVhsTape(tape)).toContain('Set BorderRadius 0');
+			expect(generateVhsTape(tape)).not.toContain('Set BorderRadius 10');
+		});
+
+		it('uses vhs.margin override when set', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: { ...baseTape.meta, vhs: { margin: 0 } },
+			};
+			expect(generateVhsTape(tape)).toContain('Set Margin 0');
+			expect(generateVhsTape(tape)).not.toContain('Set Margin 20');
+		});
+
+		it('uses vhs.marginFill override when set', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: { ...baseTape.meta, vhs: { marginFill: '#1a1b26' } },
+			};
+			expect(generateVhsTape(tape)).toContain('Set MarginFill "#1a1b26"');
+			expect(generateVhsTape(tape)).not.toContain('Set MarginFill "#9ece6a"');
+		});
+
 		it('sets typing speed', () => {
 			const result = generateVhsTape(baseTape);
 			expect(result).toContain('Set TypingSpeed 75ms');

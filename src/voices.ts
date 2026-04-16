@@ -26,8 +26,23 @@ import { xdgConfigDir } from './paths';
 /** Shape of a single voice entry in voices.yaml. */
 export interface VoiceEntry {
 	gender: string;
+	/**
+	 * Speaking-rate multiplier for piper synthesis (piper default: 1.0).
+	 * Lower = faster. When set, takes precedence over the built-in `VOICE_CONFIG` table.
+	 */
+	lengthScale?: number;
 	locale: string;
 	model: string;
+	/**
+	 * Phonation/timbre variance for piper synthesis (piper default: 0.667).
+	 * Low = consistent speaker identity. When set, takes precedence over `VOICE_CONFIG`.
+	 */
+	noiseScale?: number;
+	/**
+	 * Phoneme-duration variance for piper synthesis (piper default: 0.8).
+	 * Moderate = natural rhythm. When set, takes precedence over `VOICE_CONFIG`.
+	 */
+	noiseW?: number;
 	quality: string;
 	/** Speaker ID for multi-speaker models (passed as piper --speaker). Omit for single-speaker models. */
 	speaker?: number;

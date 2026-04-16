@@ -4,6 +4,24 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-04-16
+
+### Added
+
+- **Full VHS override coverage** — `meta.yaml` `vhs` block now supports overrides for every previously hardcoded VHS constant: `borderRadius`, `fontFamily`, `framerate`, `margin`, `marginFill`, `width`, `windowBar` (in addition to the already-supported `fontSize`, `height`, `shell`, `theme`, `typingSpeed`). Enables consumer projects to set any combination of recording dimensions, window chrome, font, and framerate per tape without touching the core defaults
+- **Per-voice VITS tuning in `voices.yaml`** — `VoiceEntry` now accepts optional `lengthScale`, `noiseScale`, and `noiseW` fields. When present on a catalogue entry, these take precedence over the built-in `VOICE_CONFIG` table and `DEFAULT_SYNTH_CONFIG` fallback. Consumer projects can tune synthesis for their own voices entirely within their own `voices.yaml` without modifying this package
+
+### Documentation
+
+- `.agents/TAPES.md` — `vhs` overrides table now covers all twelve overridable fields; added per-voice VITS tuning section with example
+- `voices.example.yaml` — documents the optional `lengthScale`, `noiseScale`, `noiseW` fields per entry
+
+### Tests
+
+- `src/generator/vhs.test.ts` — coverage for all new `vhs` overrides (`width`, `framerate`, `windowBar`, `borderRadius`, `margin`, `marginFill`, `fontFamily`) and default window chrome values
+- `src/schema/meta.test.ts` — schema acceptance and rejection tests for all new `vhs` fields
+- `src/runner/piper.test.ts` — catalogue VITS tuning takes precedence over `VOICE_CONFIG`; partial catalogue entries fall back to `DEFAULT_SYNTH_CONFIG` for unset fields
+
 ## [1.4.0] - 2026-04-14
 
 ### Added
@@ -192,6 +210,7 @@ post-production timing adjustments, and a full set of studio example tapes.
 - **Timing tools** — `--audit` prints a timing comparison table after synthesis, `--audit-fix` writes corrected pauses to `tape.yaml`, `--debug-overlay` burns command labels into the video
 - **202 tests** — TypeScript (`vitest`) and Go across parser, schemas, generators, extractors, utilities, captions, workspace, metadata, timeline, and TUI
 
+[1.4.1]: https://github.com/philsherry/playback/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/philsherry/playback/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/philsherry/playback/compare/v1.2.3...v1.3.0
 [1.2.3]: https://github.com/philsherry/playback/compare/v1.2.2...v1.2.3

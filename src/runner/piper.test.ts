@@ -13,11 +13,14 @@ vi.mock('node:fs', () => ({
 vi.mock('../voices', () => ({
 	getVoiceModel: vi.fn().mockReturnValue('en_GB-northern_english_male-medium'),
 	getVoiceSpeaker: vi.fn().mockReturnValue(undefined),
+	loadVoiceCatalogue: vi.fn().mockReturnValue({
+		northern_english_male: { gender: 'male', locale: 'en-GB', model: 'en_GB-northern_english_male-medium', quality: 'medium', url: 'en/en_GB/northern_english_male/medium' },
+	}),
 }));
 
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { getVoiceModel, getVoiceSpeaker } from '../voices';
+import { getVoiceModel, getVoiceSpeaker, loadVoiceCatalogue } from '../voices';
 import { runPiper, PiperError, VOICE_CONFIG } from './piper';
 import type { NarrationSegment } from '../types';
 
@@ -26,6 +29,7 @@ const mockExecFileSync = vi.mocked(execFileSync);
 const mockExistsSync = vi.mocked(existsSync);
 const mockGetVoiceModel = vi.mocked(getVoiceModel);
 const mockGetVoiceSpeaker = vi.mocked(getVoiceSpeaker);
+const mockLoadVoiceCatalogue = vi.mocked(loadVoiceCatalogue);
 
 /**
  * Minimal child-process stub that triggers the 'close' handler on the next
@@ -59,6 +63,10 @@ describe('runPiper', () => {
 		mockSpawn.mockReturnValue(makeChildMock());
 		mockGetVoiceModel.mockReturnValue('en_GB-northern_english_male-medium');
 		mockGetVoiceSpeaker.mockReturnValue(undefined);
+		// Default catalogue: no VITS tuning — falls through to VOICE_CONFIG.
+		mockLoadVoiceCatalogue.mockReturnValue({
+			northern_english_male: { gender: 'male', locale: 'en-GB', model: 'en_GB-northern_english_male-medium', quality: 'medium', url: 'en/en_GB/northern_english_male/medium' },
+		});
 	});
 
 	it('returns an empty array immediately when given no segments', async () => {
@@ -207,15 +215,57 @@ describe('runPiper', () => {
 		it('uses default synth config for voices not listed in VOICE_CONFIG', async () => {
 			// 'semaine_obaidah' has no entry in VOICE_CONFIG — should use fallback, not crash.
 			mockGetVoiceModel.mockReturnValue('en_GB-semaine-medium');
+			mockLoadVoiceCatalogue.mockReturnValue({
+				semaine_obaidah: { gender: 'male', locale: 'en-GB', model: 'en_GB-semaine-medium', quality: 'medium', url: 'en/en_GB/semaine/medium' },
+			});
 			const result = await runPiper([segment], '/output', 'semaine_obaidah');
 			expect(result).toHaveLength(1);
 		});
 
 		it('uses length_scale 1.0 as the fallback default', async () => {
 			mockGetVoiceModel.mockReturnValue('en_GB-semaine-medium');
+			mockLoadVoiceCatalogue.mockReturnValue({
+				semaine_obaidah: { gender: 'male', locale: 'en-GB', model: 'en_GB-semaine-medium', quality: 'medium', url: 'en/en_GB/semaine/medium' },
+			});
 			await runPiper([segment], '/output', 'semaine_obaidah');
 			const args = mockSpawn.mock.calls[0][1] as string[];
 			expect(args[args.indexOf('--length_scale') + 1]).toBe('1');
+		});
+	});
+
+	describe('voices.yaml VITS tuning', () => {
+		it('uses lengthScale from the catalogue entry when set', async () => {
+			mockLoadVoiceCatalogue.mockReturnValue({
+				northern_english_male: { gender: 'male', lengthScale: 0.85, locale: 'en-GB', model: 'en_GB-northern_english_male-medium', quality: 'medium', url: 'en/en_GB/northern_english_male/medium' },
+			});
+			await runPiper([segment], '/output');
+			const args = mockSpawn.mock.calls[0][1] as string[];
+			expect(args[args.indexOf('--length_scale') + 1]).toBe('0.85');
+		});
+
+		it('catalogue tuning overrides VOICE_CONFIG for the same voice', async () => {
+			// VOICE_CONFIG has northern_english_male.lengthScale = 1.0;
+			// catalogue sets it to 0.75 — catalogue wins.
+			mockLoadVoiceCatalogue.mockReturnValue({
+				northern_english_male: { gender: 'male', lengthScale: 0.75, locale: 'en-GB', model: 'en_GB-northern_english_male-medium', quality: 'medium', url: 'en/en_GB/northern_english_male/medium' },
+			});
+			await runPiper([segment], '/output');
+			const args = mockSpawn.mock.calls[0][1] as string[];
+			expect(args[args.indexOf('--length_scale') + 1]).toBe('0.75');
+			expect(args[args.indexOf('--length_scale') + 1]).not.toBe(
+				String(VOICE_CONFIG['northern_english_male'].lengthScale)
+			);
+		});
+
+		it('falls back to DEFAULT_SYNTH_CONFIG for unset catalogue fields', async () => {
+			// Only lengthScale is set — noiseScale and noiseW should use defaults.
+			mockLoadVoiceCatalogue.mockReturnValue({
+				northern_english_male: { gender: 'male', lengthScale: 0.85, locale: 'en-GB', model: 'en_GB-northern_english_male-medium', quality: 'medium', url: 'en/en_GB/northern_english_male/medium' },
+			});
+			await runPiper([segment], '/output');
+			const args = mockSpawn.mock.calls[0][1] as string[];
+			// DEFAULT_SYNTH_CONFIG.noiseScale = 0.1
+			expect(args[args.indexOf('--noise_scale') + 1]).toBe('0.1');
 		});
 	});
 });

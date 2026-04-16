@@ -4,7 +4,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import type { Voice } from '../schema/meta';
 import type { NarrationSegment, SynthesisedSegment } from '../types';
 import { applySubstitutions } from '../substitutions';
-import { getVoiceModel, getVoiceSpeaker } from '../voices';
+import { getVoiceModel, getVoiceSpeaker, loadVoiceCatalogue } from '../voices';
 import { voicesCacheDir } from '../paths';
 import { FFMPEG_FULL_BIN } from '../constants';
 import { logWarn } from '../logger';
@@ -242,7 +242,20 @@ export async function runPiper(
 	}
 
 	const modelPath = resolveModel(voice, voicesDir);
-	const { lengthScale, noiseScale, noiseW } = VOICE_CONFIG[voice] ?? DEFAULT_SYNTH_CONFIG;
+	// Tuning priority: voices.yaml entry fields → VOICE_CONFIG → DEFAULT_SYNTH_CONFIG.
+	// This allows consumer projects to tune synthesis in their own voices.yaml without
+	// modifying this package.
+	const catalogueEntry = loadVoiceCatalogue()[voice];
+	const hasCatalogueTuning = catalogueEntry?.lengthScale !== undefined
+		|| catalogueEntry?.noiseScale !== undefined
+		|| catalogueEntry?.noiseW !== undefined;
+	const { lengthScale, noiseScale, noiseW } = hasCatalogueTuning
+		? {
+			lengthScale: catalogueEntry.lengthScale ?? DEFAULT_SYNTH_CONFIG.lengthScale,
+			noiseScale: catalogueEntry.noiseScale ?? DEFAULT_SYNTH_CONFIG.noiseScale,
+			noiseW: catalogueEntry.noiseW ?? DEFAULT_SYNTH_CONFIG.noiseW,
+		}
+		: (VOICE_CONFIG[voice] ?? DEFAULT_SYNTH_CONFIG);
 	const speakerId = getVoiceSpeaker(voice);
 	const results: SynthesisedSegment[] = [];
 
