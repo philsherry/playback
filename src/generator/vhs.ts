@@ -83,6 +83,14 @@ export function generateVhsTape(parsed: ParsedTape): string {
 	lines.push(`Set MarginFill "${vhsOverrides?.marginFill ?? TERMINAL_MARGIN_FILL}"`);
 	lines.push(`Set Shell "${vhsOverrides?.shell ?? DEFAULT_SHELL}"`);
 	lines.push(`Set TypingSpeed ${vhsOverrides?.typingSpeed ?? TYPING_SPEED}`);
+
+	if (vhsOverrides?.preamble?.length) {
+		lines.push('');
+		for (const directive of vhsOverrides.preamble) {
+			lines.push(directive);
+		}
+	}
+
 	lines.push('');
 
 	// ── Steps ─────────────────────────────────────────────────────────────────

@@ -117,6 +117,43 @@ describe('generateVhsTape', () => {
 			const result = generateVhsTape(baseTape);
 			expect(result).toContain('Set TypingSpeed 75ms');
 		});
+
+		it('injects no preamble block when vhs.preamble is absent', () => {
+			const result = generateVhsTape(baseTape);
+			expect(result).not.toContain('Hide');
+			expect(result).not.toContain('Show');
+		});
+
+		it('injects preamble directives verbatim after the Set block', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: {
+					...baseTape.meta,
+					vhs: { preamble: ['Hide', "Type \"PS1=''\"", 'Enter', 'Show'] },
+				},
+			};
+			const result = generateVhsTape(tape);
+			expect(result).toContain('Hide');
+			expect(result).toContain("Type \"PS1=''\"");
+			expect(result).toContain('Show');
+			// Preamble must appear after the Set block and before step content
+			const setIdx = result.lastIndexOf('Set TypingSpeed');
+			const hideIdx = result.indexOf('Hide');
+			const showIdx = result.indexOf('Show');
+			const sleepIdx = result.indexOf('Sleep'); // first step Sleep
+			expect(hideIdx).toBeGreaterThan(setIdx);
+			expect(showIdx).toBeGreaterThan(hideIdx);
+			expect(sleepIdx).toBeGreaterThan(showIdx);
+		});
+
+		it('emits no preamble block when vhs.preamble is an empty array', () => {
+			const tape: ParsedTape = {
+				...baseTape,
+				meta: { ...baseTape.meta, vhs: { preamble: [] } },
+			};
+			const result = generateVhsTape(tape);
+			expect(result).not.toContain('Hide');
+		});
 	});
 
 	describe('type step', () => {

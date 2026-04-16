@@ -4,11 +4,22 @@ All notable changes to this project appear in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-04-16
+
+### Added
+
+- **`vhs.preamble` in `meta.yaml`** — `VhsOverrides` now accepts an optional `preamble` string array. Each entry is a raw VHS directive injected verbatim into the generated `.tape` file after the `Set` configuration block and before any step content. Enables consumer projects to emit `Hide`/`Show` setup blocks (PS1 suppression, stderr redirect, terminal clear) for freeform recordings — typed sentences appear on a clean, promptless surface without `command not found` errors or bash history expansion artefacts
+
+### Tests
+
+- `src/schema/meta.test.ts` — `vhs.preamble` accepted as string array, accepted as empty array, absent preamble is `undefined`
+- `src/generator/vhs.test.ts` — no preamble emitted when absent or empty, directives injected verbatim after `Set` block and before step content, ordering verified
+
 ## [1.4.1] - 2026-04-16
 
 ### Added
 
-- **Full VHS override coverage** — `meta.yaml` `vhs` block now supports overrides for every previously hardcoded VHS constant: `borderRadius`, `fontFamily`, `framerate`, `margin`, `marginFill`, `width`, `windowBar` (in addition to the already-supported `fontSize`, `height`, `shell`, `theme`, `typingSpeed`). Enables consumer projects to set any combination of recording dimensions, window chrome, font, and framerate per tape without touching the core defaults
+- **Full VHS override coverage** — `meta.yaml` `vhs` block now supports overrides for every hardcoded VHS constant: `borderRadius`, `fontFamily`, `framerate`, `margin`, `marginFill`, `width`, `windowBar`, extending the existing `fontSize`, `height`, `shell`, `theme`, `typingSpeed` coverage. Enables consumer projects to set any combination of recording dimensions, window chrome, font, and framerate per tape without touching the core defaults
 - **Per-voice VITS tuning in `voices.yaml`** — `VoiceEntry` now accepts optional `lengthScale`, `noiseScale`, and `noiseW` fields. When present on a catalogue entry, these take precedence over the built-in `VOICE_CONFIG` table and `DEFAULT_SYNTH_CONFIG` fallback. Consumer projects can tune synthesis for their own voices entirely within their own `voices.yaml` without modifying this package
 
 ### Documentation
@@ -26,9 +37,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
-- **Multi-speaker piper voice support** — `VoiceEntry` now accepts an optional `speaker` field; when set, `--speaker <id>` is passed to piper at synthesis time. Enables models such as `en_GB-semaine-medium` that pack multiple distinct characters into a single `.onnx` file — each character can be defined as a separate named voice entry. Voice selection remains tape-level (one voice narrates the whole tape); `speaker` selects which character within the model speaks. Single-speaker voices are unaffected — the field is optional and existing entries need no changes
+- **Multi-speaker piper voice support** — `VoiceEntry` now accepts an optional `speaker` field; when set, piper receives `--speaker <id>` at synthesis time. Enables models such as `en_GB-semaine-medium` that pack multiple distinct characters into a single `.onnx` file — define each character as a separate named voice entry. Voice selection remains tape-level (one voice narrates the whole tape); `speaker` selects which character within the model speaks. Single-speaker voices need no changes — the field is optional and existing entries work as before
 - **`getVoiceSpeaker()` export** — returns the speaker ID for a voice identifier, or `undefined` for single-speaker models; throws for unknown voice identifiers
-- **`VOICE_CONFIG` fallback** — voices not listed in `VOICE_CONFIG` now use sensible synthesis defaults (`lengthScale: 1.0`, `noiseScale: 0.1`, `noiseW: 0.6`) rather than crashing the runner. Consumer projects can define custom voices in a project-local `voices.yaml` without this package needing to enumerate them
+- **`VOICE_CONFIG` fallback** — voices not listed in `VOICE_CONFIG` now use sensible synthesis defaults (`lengthScale: 1.0`, `noiseScale: 0.1`, `noiseW: 0.6`) rather than crashing the runner. Consumer projects can define custom voices in a project-local `voices.yaml` without listing them in this package
 
 ### Tests
 
@@ -40,7 +51,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Added
 
 - **`playback init-agent` command** — installs the `playback-runner` AI agent into any project that uses Playback. Creates `.claude/agents/playback-runner.md` (Claude Code subagent) and `.github/prompts/playback-runner.prompt.md` (GitHub Copilot agent). Use `--force` to overwrite existing files
-- **`playback-runner` agent** — a friendly, practical guide for tape authors covering the full Playback feature set: tape and meta authoring, CLI flags, voices, timing, the TUI editor, scaffolding, and playlists. Written for designers and content creators. Ships in `templates/` and is copied into the consuming project by `playback init-agent`
+- **`playback-runner` agent** — a friendly, practical guide for tape authors covering the full Playback feature set: tape and meta authoring, CLI flags, voices, timing, the TUI editor, scaffolding, and playlists. Written for designers and content creators. Ships in `templates/`; `playback init-agent` copies it into the consuming project
 - **`studio/demo/agent/`** — demo tape showing `playback init-agent` in action, with a `gum`-styled Q&A sequence
 
 ## [1.2.3] - 2026-04-13
@@ -210,6 +221,7 @@ post-production timing adjustments, and a full set of studio example tapes.
 - **Timing tools** — `--audit` prints a timing comparison table after synthesis, `--audit-fix` writes corrected pauses to `tape.yaml`, `--debug-overlay` burns command labels into the video
 - **202 tests** — TypeScript (`vitest`) and Go across parser, schemas, generators, extractors, utilities, captions, workspace, metadata, timeline, and TUI
 
+[1.5.0]: https://github.com/philsherry/playback/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/philsherry/playback/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/philsherry/playback/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/philsherry/playback/compare/v1.2.3...v1.3.0

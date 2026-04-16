@@ -175,5 +175,30 @@ describe('MetaSchema', () => {
 			});
 			expect(result.success).toBe(false);
 		});
+
+		it('accepts vhs.preamble as an array of strings', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { preamble: ['Hide', "Type \"PS1=''\"", 'Enter', 'Show'] },
+			});
+			expect(result.success).toBe(true);
+		});
+
+		it('accepts vhs.preamble as an empty array', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { preamble: [] },
+			});
+			expect(result.success).toBe(true);
+		});
+
+		it('accepts vhs without preamble', () => {
+			const result = v.safeParse(MetaSchema, {
+				title: 'My Episode',
+				vhs: { shell: 'bash' },
+			});
+			expect(result.success).toBe(true);
+			expect(result.success && result.output.vhs?.preamble).toBeUndefined();
+		});
 	});
 });
